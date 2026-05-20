@@ -3,8 +3,13 @@ import rehypeKatex from 'rehype-katex'
 import matter from 'gray-matter'
 import fs from 'fs'
 import path from 'path'
+import { evaluate } from '@mdx-js/mdx'
+import * as runtime from 'react/jsx-runtime'
+import type { MDXComponents } from 'mdx/types'
+import type { ComponentType } from 'react'
 
 const contentDir = path.join(process.cwd(), 'content')
+type MdxContentComponent = ComponentType<{ components?: MDXComponents }>
 
 export type ResearchPaperWalkthrough = {
   slug: string
@@ -30,7 +35,9 @@ export async function getModuleBySlug(slug: string) {
   if (!fs.existsSync(fullPath)) return null
   const raw = fs.readFileSync(fullPath, 'utf-8').trimStart()
   const { data, content } = matter(raw)
-  return { frontmatter: data, content: normalizeMathDelimiters(content) }
+  const normalizedContent = normalizeMathDelimiters(content)
+  const Content = await compileMdxToComponent(normalizedContent)
+  return { frontmatter: data, content: normalizedContent, Content }
 }
 
 export async function getAllModuleSlugs() {
@@ -45,7 +52,9 @@ export async function getPostBySlug(slug: string, folder: string) {
   if (!fs.existsSync(fullPath)) return null
   const raw = fs.readFileSync(fullPath, 'utf-8').trimStart()
   const { data, content } = matter(raw)
-  return { frontmatter: data, content: normalizeMathDelimiters(content) }
+  const normalizedContent = normalizeMathDelimiters(content)
+  const Content = await compileMdxToComponent(normalizedContent)
+  return { frontmatter: data, content: normalizedContent, Content }
 }
 
 export async function getAllPostSlugs(folder: string) {
@@ -77,4 +86,15 @@ export async function getResearchPaperWalkthroughs() {
 export const mdxOptions = {
   remarkPlugins: [remarkMath],
   rehypePlugins: [rehypeKatex],
+}
+
+async function compileMdxToComponent(source: string): Promise<MdxContentComponent> {
+  const compiled = await evaluate(source, {
+    ...runtime,
+    // Keep plugin wiring centralized; cast avoids vfile type duplication noise.
+    remarkPlugins: mdxOptions.remarkPlugins as any[],
+    rehypePlugins: mdxOptions.rehypePlugins as any[],
+  })
+
+  return compiled.default as MdxContentComponent
 }

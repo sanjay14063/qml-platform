@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { MDXRemote } from 'next-mdx-remote/rsc'
-import { getPostBySlug, getAllPostSlugs, mdxOptions } from '@/lib/mdx'
+import { getPostBySlug, getAllPostSlugs } from '@/lib/mdx'
 import { ButtonGhost, Card, Container, Section } from '@/components/ui'
 import { MotionBlock } from '@/components/motion'
 import { useMDXComponents } from '@/mdx-components'
@@ -10,6 +9,7 @@ export async function generateStaticParams() {
   const slugs = await getAllPostSlugs('insights')
   return slugs.map((slug) => ({ slug }))
 }
+export const dynamicParams = false
 
 function formatTitle(slug: string, title?: string) {
   return title ?? slug.split('-').map((word) => word[0].toUpperCase() + word.slice(1)).join(' ')
@@ -24,7 +24,7 @@ export default async function InsightPage({
   const postData = await getPostBySlug(slug, 'insights')
   if (!postData) notFound()
 
-  const { frontmatter, content } = postData
+  const { frontmatter, Content } = postData
   const meta = frontmatter as {
     title?: string
     description?: string
@@ -82,13 +82,7 @@ export default async function InsightPage({
             </aside>
             <article className="rounded-xl border border-line bg-card p-6 shadow-soft md:p-8">
               <div className="mdx-content max-w-none">
-                <MDXRemote
-                  source={content}
-                  options={{
-                    mdxOptions: mdxOptions as object,
-                  }}
-                  components={components}
-                />
+                <Content components={components} />
               </div>
             </article>
           </MotionBlock>

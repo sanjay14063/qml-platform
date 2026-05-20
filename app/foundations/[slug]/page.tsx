@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { MDXRemote } from 'next-mdx-remote/rsc'
-import { getModuleBySlug, getAllModuleSlugs, mdxOptions } from '@/lib/mdx'
+import { getModuleBySlug, getAllModuleSlugs } from '@/lib/mdx'
 import { Container } from '@/components/ui'
 import { MotionBlock } from '@/components/motion'
 import { ParameterizedCircuitDemo } from '@/components/qml-demos'
@@ -35,6 +34,7 @@ export async function generateStaticParams() {
   const slugs = await getAllModuleSlugs()
   return slugs.map((slug) => ({ slug }))
 }
+export const dynamicParams = false
 
 export default async function ModulePage({
   params,
@@ -45,7 +45,7 @@ export default async function ModulePage({
   const moduleData = await getModuleBySlug(slug)
   if (!moduleData) notFound()
 
-  const { frontmatter, content } = moduleData
+  const { frontmatter, content, Content } = moduleData
   const title = formatTitle(slug, (frontmatter as { title?: string }).title)
   const headings = getHeadings(content)
   const components = useMDXComponents({})
@@ -67,13 +67,7 @@ export default async function ModulePage({
               </div>
             )}
             <div className="mdx-content mt-10">
-              <MDXRemote
-                source={content}
-                options={{
-                  mdxOptions: mdxOptions as object,
-                }}
-                components={components}
-              />
+              <Content components={components} />
             </div>
           </article>
         </MotionBlock>

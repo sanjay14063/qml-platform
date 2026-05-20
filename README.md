@@ -1,81 +1,98 @@
-# QML Learning Hub
+# QML Learning Platform
 
-A structured, code-backed learning reference for Quantum Machine Learning. This is a research-grade learning hub—not a commercial course platform—designed for advanced high school students, undergraduates, and early researchers.
+A structured, code-backed learning project for Quantum Machine Learning. It focuses on understanding how QML models behave under realistic constraints such as noise, scaling limits, and classical baselines.
+
+This is a learning and exploration system rather than a polished commercial product or formal course.
+
+## Core Idea
+
+Quantum machine learning is often presented in idealized settings. This project instead emphasizes:
+
+- What breaks under noise
+- Why scaling introduces trainability issues
+- How classical baselines affect claims of advantage
+- Where quantum approaches are actually meaningful in practice
 
 ## Features
 
-- **Static site** — Next.js 14 with App Router, Tailwind CSS
-- **Math rendering** — KaTeX via remark-math / rehype-katex
-- **MDX content** — Modules and research commentary in Markdown + JSX
-- **Code syntax highlighting** — Via MDX and Tailwind-styled code blocks
+- Next.js 14 App Router based web application
+- MDX-based content system for structured learning modules
+- KaTeX math rendering for equations and derivations
+- Code-integrated explanations (PennyLane / Qiskit-ready examples)
+- Research-style insights and failure-mode analysis
 
 ## Project Structure
 
 ```
 ├── app/
-│   ├── page.tsx              # Home
-│   ├── learning-path/        # Learning Path (staged roadmap)
-│   ├── modules/              # Modules index + [slug] dynamic routes
-│   ├── code-notebooks/       # Code & Notebooks
-│   ├── research-commentary/  # Research blog + [slug] posts
-│   └── about/                # About
+│   ├── page.tsx
+│   ├── about/
+│   ├── insights/
+│   ├── learning-path/
+│   ├── modules/
+│   ├── code-notebooks/
+│   └── research-commentary/
 ├── content/
-│   ├── modules/              # Module MDX files (strict template)
-│   │   ├── module-template.mdx
-│   │   ├── qubits-states-measurements.mdx
-│   │   └── ...
-│   └── research/             # Research commentary posts
+│   ├── modules/
+│   ├── insights/
+│   └── research/
 ├── lib/
-│   └── mdx.ts                # MDX loading utilities
+├── components/
 └── ...
 ```
 
-## Module Template
+## Learning Model
 
-Each module follows:
+Each module is designed around a consistent structure:
 
-1. **Motivation** — Why this concept matters in QML
-2. **Core Concepts** — Mathematical definitions, key equations, intuition
-3. **Implementation** — PennyLane/Qiskit examples, circuit diagrams
-4. **Experiments** — Noise-aware experiments, scaling behavior
-5. **Failure Modes & Pitfalls**
-6. **Further Reading** — Papers + docs
-7. **Key Takeaways**
+- Motivation and context
+- Core concepts and mathematical framing
+- Implementation examples (quantum circuits / code)
+- Experimental behavior under constraints
+- Failure modes and limitations
+- Key takeaways
 
 ## Development
 
+Install dependencies:
+
 ```bash
 npm install
+```
+
+Run locally:
+
+```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open:
 
-## Build
+http://localhost:3000
+
+## Build & Deployment
+
+This project is designed for deployment on Vercel.
 
 ```bash
 npm run build
 ```
 
-Static output is generated in `.next/`. Deploy to Vercel, Netlify, or any static host.
+In most cases, deployment is handled automatically through GitHub integration with Vercel.
 
-## Adding Content
+## Content Workflow
 
-- **New module**: Create `content/modules/your-module.mdx` following the template. It will appear on `/modules` and `/modules/your-module`.
-- **New research post**: Create `content/research/your-post.mdx` with frontmatter `title` and optional `date`. It will appear on `/research-commentary` and `/research-commentary/your-post`.
+- Add new modules in `content/modules/`
+- Add insights in `content/insights/`
+- Add research notes in `content/research/`
 
-## Math Rendering
+All content is written in MDX and rendered dynamically through the app router.
 
-KaTeX is used for math via `remark-math` and `rehype-katex`. Version 5.x/6.x are used for compatibility with `next-mdx-remote`. Use `$...$` for inline math and `$$...$$` for display math in MDX.
+## Notes
 
-## TODO
-
-- [ ] Replace GitHub placeholder with actual repository URL
-- [ ] Add author background on About page
-- [ ] Expand module content (replace TODO markers with full text and code)
-- [ ] Create Jupyter notebooks for each module
-- [ ] Add more research commentary posts
+- This is a living system; structure and content will evolve over time
+- Emphasis is placed on correctness, constraints, and realistic QML behavior rather than theoretical claims of quantum advantage
 
 ## License
 
-MIT (or your preferred license)
+MIT
