@@ -1,0 +1,310 @@
+---
+title: "Variational Quantum Circuits (VQCs)"
+stage: 2
+---
+
+# Motivation
+
+At this point, you have all the pieces:
+
+- quantum states (what the system is)
+- observables (how you extract numbers)
+- parameterized circuits (how you control the system)
+
+Now we combine everything into an actual **learning model**.
+
+A Variational Quantum Circuit (VQC) is:
+
+> a parameterized quantum circuit + a classical optimization loop
+
+This is the core architecture behind almost all practical quantum machine learning today.
+
+If you think in ML terms:
+
+- Neural network → forward pass + backprop  
+- VQC → circuit execution + parameter update  
+
+Same structure. Different mechanics.
+
+---
+
+# Core Concepts
+
+## What is a VQC (structurally)?
+
+A VQC defines a function:
+
+\[
+f(\theta, x)
+\]
+
+where:
+
+- \( x \) = input data  
+- \( \theta \) = trainable parameters  
+
+The pipeline looks like:
+
+1. encode data into a quantum state  
+2. apply a parameterized circuit  
+3. measure expectation values  
+4. compute loss  
+5. update parameters  
+
+---
+
+## Mathematical Definitions
+
+We start with an initial state:
+
+\[
+|0\rangle^{\otimes n}
+\]
+
+A parameterized circuit transforms it:
+
+\[
+|\psi(\theta, x)\rangle = U(\theta, x) |0\rangle
+\]
+
+The model output is:
+
+\[
+f(\theta, x) = \langle \psi(\theta, x) | O | \psi(\theta, x) \rangle
+\]
+
+Where:
+
+- \( O \) = observable  
+- output is a real number  
+
+---
+
+## Cost Function
+
+We define a loss:
+
+\[
+C(\theta) = \mathbb{E}_{(x,y)} [L(f(\theta, x), y)]
+\]
+
+Examples:
+
+- classification → cross-entropy  
+- regression → mean squared error  
+
+Training objective:
+
+\[
+\theta^* = \arg\min_\theta C(\theta)
+\]
+
+---
+
+## Gradient Computation (Parameter-Shift Rule)
+
+Unlike classical models, we cannot directly backprop through quantum hardware.
+
+Instead, we use:
+
+\[
+\frac{\partial C}{\partial \theta_i}
+=
+\frac{1}{2}
+\left[
+C(\theta_i + \tfrac{\pi}{2}) - C(\theta_i - \tfrac{\pi}{2})
+\right]
+\]
+
+This means:
+
+> each gradient requires multiple circuit evaluations
+
+---
+
+## Optimization Loop
+
+Standard update:
+
+\[
+\theta \leftarrow \theta - \eta \nabla C(\theta)
+\]
+
+But in practice:
+
+- gradients are noisy  
+- cost landscape can be flat  
+- convergence is unstable  
+
+---
+
+## Hybrid Nature (critical idea)
+
+A VQC is not purely quantum.
+
+It is:
+
+> a classical optimizer controlling a quantum system
+
+Flow:
+
+1. classical computer sends parameters  
+2. quantum device evaluates circuit  
+3. measurement returns classical data  
+4. optimizer updates parameters  
+
+This loop repeats.
+
+---
+
+## Expressivity vs Trainability
+
+Same issue as PQCs, but more important here.
+
+More depth:
+
+- higher expressive power  
+- better function approximation  
+
+But:
+
+- barren plateaus  
+- noise accumulation  
+- slower training  
+
+---
+
+## Barren Plateaus (again, but deeper)
+
+For many circuits:
+
+\[
+\mathbb{E}[\nabla C] \to 0
+\]
+
+as system size increases.
+
+Meaning:
+
+> training becomes impossible beyond small sizes
+
+This is a central research problem in QML.
+
+---
+
+## VQCs vs Neural Networks
+
+Key differences:
+
+- No explicit nonlinear activation → nonlinearity from measurement  
+- Gradients are estimated, not exact  
+- Computation happens in complex vector space  
+- Training cost is higher (multiple circuit runs per step)  
+
+But structurally:
+
+> they are both parameterized function approximators
+
+---
+
+## Intuition
+
+Compress everything:
+
+- VQC = PQC + loss + optimizer  
+- Output = expectation value  
+- Learning = adjusting circuit parameters  
+
+So:
+
+> a VQC is a trainable quantum function
+
+---
+
+# Implementation
+
+## Simple VQC in PennyLane
+
+```python
+import pennylane as qml
+import numpy as np
+
+dev = qml.device("default.qubit", wires=2, shots=1000)
+
+@qml.qnode(dev)
+def circuit(theta, x):
+    # Data encoding
+    qml.RY(x[0], wires=0)
+    qml.RY(x[1], wires=1)
+
+    # Trainable circuit
+    qml.RY(theta[0], wires=0)
+    qml.CNOT(wires=[0, 1])
+    qml.RY(theta[1], wires=1)
+
+    return qml.expval(qml.PauliZ(1))
+
+def loss(theta):
+    return (circuit(theta, [0.2, 0.4]) - 1.0)**2
+
+opt = qml.GradientDescentOptimizer(stepsize=0.1)
+theta = np.random.randn(2, requires_grad=True)
+
+for step in range(100):
+    theta = opt.step(loss, theta)
+```
+
+---
+
+## What to Observe
+
+- Output depends on both data and parameters  
+- Optimization gradually reduces loss  
+- Noise (shots) introduces variance  
+
+---
+
+# Experiments
+
+## Increase Depth
+
+- Add more layers  
+- Observe expressivity vs training difficulty  
+
+## Change Encoding
+
+- Try different data embedding schemes  
+- Observe effect on performance  
+
+## Reduce Shots
+
+- Lower shot count  
+- Observe noisy gradients  
+
+---
+
+# Failure Modes & Pitfalls
+
+- Assuming quantum advantage without evidence  
+- Using too deep circuits → barren plateaus  
+- Ignoring shot noise  
+- Poor data encoding → weak models  
+- Treating VQCs like classical networks (they behave differently)  
+
+---
+
+# Further Reading
+
+- Schuld & Petruccione — Supervised Learning with Quantum Computers  
+- PennyLane documentation — Variational circuits  
+- Recent research on trainability and barren plateaus  
+
+---
+
+# Key Takeaways
+
+1. VQCs combine quantum circuits with classical optimization.
+2. Model outputs are expectation values of observables.
+3. Gradients are computed via parameter-shift rules.
+4. Training involves a hybrid classical–quantum loop.
+5. Expressivity comes at the cost of trainability challenges.

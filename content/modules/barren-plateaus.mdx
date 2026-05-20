@@ -1,0 +1,325 @@
+---
+title: "Barren Plateaus"
+stage: 3
+---
+
+# Motivation
+
+You now know how to compute gradients using the parameter-shift rule.
+
+So in theory, you can train your model.
+
+But in practice, something breaks:
+
+> the gradients become so small that training effectively stops
+
+This is called a **barren plateau**.
+
+---
+
+In classical deep learning:
+
+- gradients can vanish, but usually slowly  
+
+In quantum ML:
+
+- gradients can vanish **exponentially with system size**  
+
+---
+
+That difference is what makes this problem serious.
+
+---
+
+# Core Concepts
+
+## What is a Barren Plateau (intuitively)?
+
+A barren plateau is a region where:
+
+> changing parameters barely changes the output
+
+So:
+
+- gradients ≈ 0  
+- optimizer has no signal  
+- training stalls  
+
+---
+
+You’re not stuck in a bad local minimum.
+
+> you’re stuck on a *flat landscape*  
+
+---
+
+## Mathematical View
+
+We look at the variance of gradients:
+
+\[
+\operatorname{Var}\left[\frac{\partial C}{\partial \theta_i}\right]
+\]
+
+For many circuits:
+
+\[
+\operatorname{Var} \sim 2^{-n}
+\]
+
+Where:
+
+- \( n \) = number of qubits  
+
+---
+
+So as the system grows:
+
+> gradients shrink exponentially  
+
+---
+
+## Why This Happens
+
+The core reason:
+
+> highly expressive circuits behave like random unitary transformations  
+
+---
+
+When this happens:
+
+- outputs concentrate around their average  
+- gradients concentrate around 0  
+
+This is a form of **concentration of measure**.
+
+---
+
+## Expressibility vs Trainability Trade-off
+
+More expressive circuits:
+
+- can represent more functions  
+- explore more of Hilbert space  
+
+But:
+
+- look increasingly random  
+- destroy gradient signal  
+
+---
+
+So:
+
+> more power ≠ easier training  
+
+---
+
+This is one of the central tensions in QML.
+
+---
+
+## Global vs Local Cost Functions
+
+### Global cost
+
+- depends on the full system  
+
+Example:
+
+\[
+C = \langle Z_1 Z_2 Z_3 \cdots Z_n \rangle
+\]
+
+---
+
+These are:
+
+- more expressive  
+- more likely to cause barren plateaus  
+
+---
+
+### Local cost
+
+- depends on a small subset of qubits  
+
+Example:
+
+\[
+C = \langle Z_1 \rangle
+\]
+
+---
+
+These:
+
+- preserve gradient signal better  
+- are easier to train  
+
+But:
+
+- may limit model power  
+
+---
+
+## Depth Matters
+
+Deeper circuits:
+
+- become more random  
+- approach unitary 2-designs  
+
+---
+
+Result:
+
+> deeper → flatter landscape  
+
+---
+
+## Initialization Matters
+
+Random initialization:
+
+- pushes circuit into chaotic regime  
+- leads to immediate plateau  
+
+Better strategies:
+
+- identity initialization  
+- small-angle initialization  
+- layer-wise training  
+
+---
+
+## Intuition (3Blue1Brown style)
+
+Imagine a landscape:
+
+- hills = strong gradients  
+- valleys = minima  
+- flat desert = barren plateau  
+
+---
+
+In a barren plateau:
+
+- everything looks the same  
+- no direction is better than another  
+
+---
+
+So the optimizer:
+
+> just wanders randomly  
+
+---
+
+# Implementation
+
+## Measuring Gradient Variance (PennyLane)
+
+```python
+import pennylane as qml
+import numpy as np
+
+dev = qml.device("default.qubit", wires=4)
+
+@qml.qnode(dev, diff_method="parameter-shift")
+def circuit(params):
+    for i in range(len(params)):
+        qml.RY(params[i], wires=i % 4)
+    return qml.expval(qml.PauliZ(0))
+
+def cost(params):
+    return circuit(params)
+
+grads = []
+for _ in range(50):
+    params = np.random.uniform(0, 2*np.pi, 4)
+    g = qml.grad(cost)(params)
+    grads.append(g)
+
+print(np.var(grads, axis=0))
+```
+
+---
+
+## What to Observe
+
+- Increase number of qubits  
+- Increase depth  
+- Track variance  
+
+You should see:
+
+> variance decreases rapidly  
+
+---
+
+# Experiments
+
+## Depth vs Gradient Signal
+
+- fix qubits  
+- increase layers  
+- measure gradient variance  
+
+---
+
+## Global vs Local Cost
+
+- compare full-system observable vs single-qubit observable  
+- observe training stability  
+
+---
+
+## Initialization Strategies
+
+- random init  
+- near-identity init  
+- compare gradient magnitude  
+
+---
+
+# Mitigation Strategies
+
+These don’t fully solve the problem, but they help:
+
+- Use **shallow circuits**  
+- Prefer **local cost functions**  
+- Use **structured ansätze** (not random)  
+- Initialize near identity  
+- Train layer-by-layer  
+- Use problem-informed circuits  
+
+---
+
+# Failure Modes & Pitfalls
+
+- Thinking “just increase depth” → often makes training worse  
+- Ignoring gradient scale before training  
+- Using fully random circuits  
+- Assuming all circuits suffer equally (structure matters)  
+- Over-fixing with local costs and losing expressivity  
+
+---
+
+# Further Reading
+
+- McClean et al. — Barren plateaus in quantum neural networks  
+- Cerezo et al. — Cost function dependent barren plateaus  
+- Pesah et al. — Absence of barren plateaus  
+- Volkoff & Coles — Large gradients via correlated parameters  
+
+---
+
+# Key Takeaways
+
+1. Barren plateaus cause exponentially vanishing gradients.
+2. They arise from highly expressive, random-like circuits.
+3. Depth, cost function, and initialization strongly affect them.
+4. Local costs and structured circuits help preserve gradients.
+5. They are a fundamental challenge in scaling QML.

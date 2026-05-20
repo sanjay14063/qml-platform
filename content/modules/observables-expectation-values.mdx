@@ -1,0 +1,277 @@
+---
+title: "Observables and Expectation Values"
+stage: 1
+---
+
+# Motivation
+
+In the previous module, you learned something slightly uncomfortable:
+
+> you cannot directly “read” a quantum state
+
+You only get samples like 0 and 1.
+
+So now the obvious question is:
+
+> how do we turn that into something useful for machine learning?
+
+Because ML models don’t output random bits — they output numbers:
+- probabilities
+- scores
+- predictions
+
+This is where **observables and expectation values** come in.
+
+They are the bridge between:
+- quantum states (vectors)
+- and usable outputs (real numbers)
+
+---
+
+# Core Concepts
+
+## What is an Observable (intuitively)?
+
+An observable is just:
+
+> a rule for extracting a number from a quantum state
+
+Mathematically, it’s a **matrix**.
+
+But not just any matrix — a **Hermitian matrix**:
+
+\[
+O = O^\dagger
+\]
+
+---
+
+## Why Hermitian?
+
+This isn’t arbitrary.
+
+Hermitian matrices have two critical properties:
+
+1. **Eigenvalues are real**  
+   → measurement results must be real numbers  
+
+2. **Eigenvectors form a basis**  
+   → they define the possible measurement outcomes  
+
+So:
+
+> observable = matrix that defines what outcomes are possible and how we measure them
+
+---
+
+## Example: Pauli Z
+
+One of the most important observables:
+
+\[
+Z =
+\begin{pmatrix}
+1 & 0 \\
+0 & -1
+\end{pmatrix}
+\]
+
+What does this do?
+
+- If the system is in \( |0\rangle \) → output = +1  
+- If the system is in \( |1\rangle \) → output = -1  
+
+So instead of measuring “0 or 1”, you now measure:
+
+> +1 or -1
+
+---
+
+## Expectation Values (the actual output)
+
+Now suppose your state is:
+
+\[
+|\psi\rangle = \alpha |0\rangle + \beta |1\rangle
+\]
+
+If you measure many times, you’ll get:
+- +1 with probability \( |\alpha|^2 \)
+- -1 with probability \( |\beta|^2 \)
+
+The **average value** is:
+
+\[
+\langle O \rangle = \langle \psi | O | \psi \rangle
+\]
+
+---
+
+## What does this actually mean?
+
+This formula looks abstract, but it’s just:
+
+> weighted average of measurement outcomes
+
+For Pauli Z:
+
+\[
+\langle Z \rangle = (+1)\cdot P(0) + (-1)\cdot P(1)
+\]
+
+So:
+
+\[
+\langle Z \rangle = |\alpha|^2 - |\beta|^2
+\]
+
+---
+
+### Key insight
+
+Expectation values turn randomness into something stable:
+
+- Single measurement → random  
+- Many measurements → stable average  
+
+This is exactly what ML needs.
+
+---
+
+## Spectral Decomposition (what’s really happening)
+
+Every observable can be written as:
+
+\[
+O = \sum_i \lambda_i |i\rangle \langle i|
+\]
+
+This tells you:
+
+- \( \lambda_i \) = possible outputs  
+- \( |i\rangle \) = states that produce those outputs  
+
+Then:
+
+\[
+\langle O \rangle = \sum_i \lambda_i P(i)
+\]
+
+Which is just:
+
+> average = value × probability
+
+Nothing new — just written in linear algebra form.
+
+---
+
+## Observables as Model Outputs
+
+Now connect this to machine learning.
+
+A quantum model looks like:
+
+\[
+f(\theta) = \langle \psi(\theta) | O | \psi(\theta) \rangle
+\]
+
+So:
+
+1. parameters \( \theta \) define a circuit  
+2. circuit prepares a state  
+3. observable extracts a number  
+
+That number is your prediction.
+
+---
+
+### Important perspective
+
+A variational quantum model is basically:
+
+> a complicated way to compute an expectation value
+
+That’s it.
+
+---
+
+## Intuition
+
+Compress everything:
+
+- Observable = matrix that defines what you measure  
+- Measurement = sampling eigenvalues  
+- Expectation value = average over many samples  
+
+And in QML:
+
+> expectation value = model output  
+
+---
+
+# Implementation
+
+## PennyLane Example
+
+```python
+import pennylane as qml
+import numpy as np
+
+dev = qml.device("default.qubit", wires=1)
+
+@qml.qnode(dev)
+def expval(theta):
+    qml.RY(theta, wires=0)
+    return qml.expval(qml.PauliZ(0))
+
+for t in [0, np.pi/4, np.pi/2]:
+    print(f"theta={t:.2f} →", expval(t))
+```
+
+---
+
+## What to Observe
+
+- Output is always between -1 and 1  
+- Changing \( \theta \) smoothly changes the output  
+- This behaves like a normal ML model  
+
+---
+
+# Experiments
+
+## Try Different Observables
+
+- Replace `PauliZ` with `PauliX`, `PauliY`  
+- Observe how outputs change  
+
+## Sampling vs Expectation
+
+- Use `qml.sample` instead of `qml.expval`  
+- Estimate the mean manually  
+
+---
+
+# Failure Modes & Pitfalls
+
+- Thinking measurement gives the expectation directly (it doesn’t — it’s an average)
+- Forgetting that observables define the output range
+- Using too few samples → noisy estimates
+- Not connecting expectation values to ML outputs
+
+---
+
+# Further Reading
+
+- Nielsen & Chuang — Measurement theory  
+- PennyLane documentation — Observables  
+
+---
+
+# Key Takeaways
+
+1. Observables are Hermitian matrices that define what you measure.
+2. Measurement outcomes are eigenvalues of the observable.
+3. Expectation values are weighted averages over outcomes.
+4. In QML, expectation values act as model predictions.
+5. A variational quantum model is fundamentally an expectation-value machine.

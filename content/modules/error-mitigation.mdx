@@ -1,0 +1,215 @@
+---
+title: "Error Mitigation"
+stage: 4
+---
+
+# Motivation
+
+Real quantum hardware is messy.
+
+In theory, you prepare a clean quantum state, apply gates, and measure something meaningful. In practice, everything is slightly off—gates are imperfect, qubits lose coherence, and measurements lie to you.
+
+So the actual problem isn’t just “run a circuit.” It’s:
+
+> How do you extract useful information from something that is fundamentally noisy?
+
+Full quantum error correction exists, but it’s completely unrealistic for current devices. The overhead is massive.
+
+Error mitigation is the practical workaround. You don’t fix the errors—you **work around them** using smarter experiments and post-processing.
+
+# Core Concepts
+
+## The Problem
+
+Ideally, you want:
+
+$$
+\langle O \rangle = \langle \psi | O | \psi \rangle
+$$
+
+But what you actually get is:
+
+$$
+\rho = \mathcal{E}(|\psi\rangle\langle\psi|)
+$$
+
+where $\mathcal{E}$ represents noise.
+
+So instead of measuring the clean state $|\psi\rangle$, you're measuring a corrupted version $\rho$.
+
+Error mitigation is about answering:
+
+> Given noisy measurements, can we recover something close to the true value?
+
+---
+
+## Zero-Noise Extrapolation (ZNE)
+
+The idea is simple but clever:
+
+If you can artificially **increase the noise**, you can observe how your result changes—and then extrapolate back to what it would be at zero noise.
+
+So you:
+- Run the same circuit multiple times
+- Intentionally scale the noise (e.g. by stretching gates or inserting identities)
+- Fit a curve
+- Evaluate it at “zero noise”
+
+Mathematically:
+
+$$
+\langle O \rangle_{\text{ideal}} \approx \lim_{\lambda \to 0} \langle O \rangle(\lambda)
+$$
+
+Where $\lambda$ is the noise strength.
+
+This doesn’t remove noise—it **models it and reverses its trend**.
+
+---
+
+## Probabilistic Error Cancellation (PEC)
+
+This is more aggressive.
+
+Instead of extrapolating, you try to **mathematically undo the noise**.
+
+You represent the ideal circuit as a weighted combination of noisy circuits:
+
+$$
+\langle O \rangle = \sum_i \eta_i \langle O \rangle_i^{\text{noisy}}
+$$
+
+The weights $\eta_i$ can be negative, which is why this is called a *quasi-probability* method.
+
+Key tradeoff:
+
+- You get an **unbiased estimate**
+- But the **variance explodes**
+
+So you need way more samples to get a stable result.
+
+---
+
+## Measurement Error Mitigation
+
+This is the simplest and most practical method.
+
+Even if your circuit is fine, your measurements can still be wrong.
+
+Example:
+- You prepare $|0\rangle$
+- The device reports $|1\rangle$ with some probability
+
+You model this using a **confusion matrix**:
+
+$$
+\mathbf{p}_{\text{corrected}} = M^{-1} \mathbf{p}_{\text{raw}}
+$$
+
+Where:
+- $M$ captures how measurements get flipped
+- You invert it to correct your results
+
+This is widely used because:
+- It’s cheap
+- It works well for small systems
+
+---
+
+## Intuition
+
+Error mitigation is basically:
+
+> Spend more computation (more circuit runs, more classical processing) to compensate for bad hardware.
+
+You’re trading:
+- **Time and samples**
+for
+- **Better estimates**
+
+But there’s a limit.
+
+If the circuit gets too deep, noise dominates completely—and no amount of mitigation saves you.
+
+# Implementation
+
+## PennyLane: Simulating Noise + ZNE
+
+```python
+import pennylane as qml
+import numpy as np
+
+def circuit_with_noise(params, error_rate, dev):
+    @qml.qnode(dev)
+    def qnode(params):
+        qml.RY(params[0], wires=0)
+        qml.DepolarizingChannel(error_rate, wires=0)
+        qml.RY(params[1], wires=0)
+        return qml.expval(qml.PauliZ(0))
+    return qnode(params)
+```
+
+Basic workflow:
+- Run this at multiple `error_rate` values
+- Collect expectation values
+- Fit a curve (linear or polynomial)
+- Extrapolate back to zero noise
+
+---
+
+## Readout Mitigation (Qiskit)
+
+```python
+# from qiskit.ignis.mitigation import complete_meas_cal, CompleteMeasFitter
+
+# Build calibration circuits
+# Fit confusion matrix
+# Apply inverse to correct counts
+```
+
+This is usually the first mitigation technique people apply in practice.
+
+# Experiments
+
+## ZNE on a Small Circuit
+
+Try:
+- 2–3 qubit circuit
+- Add controllable noise
+- Plot expectation value vs noise level
+- Extrapolate to zero
+
+Then compare with a noiseless simulator.
+
+That gap tells you how well mitigation is working.
+
+---
+
+## Cost vs Accuracy
+
+Measure:
+- How many extra circuit runs you need
+- How much variance increases
+
+You’ll see quickly:
+
+> Better accuracy comes at a steep cost.
+
+# Failure Modes & Pitfalls
+
+- Thinking mitigation “fixes” noise — it doesn’t  
+- Ignoring variance blow-up (especially with PEC)  
+- Using a noise model that doesn’t match reality  
+- Over-correcting and making results worse  
+
+Most importantly:
+
+> These methods break down as circuits scale.
+
+# Key Takeaways
+
+1. Error mitigation is a workaround, not a solution.
+2. ZNE models noise and extrapolates it away.
+3. PEC cancels noise mathematically but at huge sampling cost.
+4. Measurement mitigation is simple and widely useful.
+5. None of this scales cleanly—fault tolerance is still the long-term answer.

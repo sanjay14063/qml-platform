@@ -1,0 +1,455 @@
+---
+title: "Classical Machine Learning Essentials"
+stage: 0
+---
+
+## Motivation
+
+Quantum machine learning models do not exist in isolation.
+They are trained, evaluated, and interpreted using the same learning-theoretic
+framework as classical machine learning models.
+
+Many claims of quantum advantage fail not because the quantum model is incorrect,
+but because classical baselines and learning principles are misunderstood or ignored.
+
+This module establishes the classical ML foundations required to reason
+correctly about quantum models.
+
+---
+
+## Core Concepts
+
+### Supervised Learning
+
+Most QML algorithms operate within the supervised learning framework.
+
+Key components:
+- Input space \( \mathcal{X} \)
+- Output space \( \mathcal{Y} \)
+- Hypothesis class \( \mathcal{H} \)
+- Parameterized model \( f_\theta \in \mathcal{H} \)
+
+In QML, the hypothesis class is induced by a quantum circuit ansatz,
+and parameters correspond to gate angles.
+
+---
+
+### Empirical Risk Minimization
+
+Training a model corresponds to minimizing empirical risk:
+
+\[
+\hat{R}(\theta) = \frac{1}{N} \sum_{i=1}^{N} \mathcal{L}(f_\theta(x_i), y_i)
+\]
+
+Quantum models differ only in how \( f_\theta \) is implemented,
+not in the objective being optimized.
+
+---
+
+### Optimization Landscapes
+
+The loss surfaces of QML models are typically:
+- High-dimensional
+- Non-convex
+- Structured by circuit architecture
+
+Phenomena shared with classical deep learning:
+- Local minima
+- Saddle points
+- Flat regions
+
+Additional QML-specific issue:
+- Barren plateaus (vanishing gradients)
+
+---
+
+### Generalization and Capacity
+
+Generalization depends on the relationship between:
+- Model capacity
+- Dataset size
+- Inductive bias
+
+In QML, capacity is influenced by:
+- Circuit depth
+- Entanglement structure
+- Expressibility of the ansatz
+
+Overly expressive circuits may overfit while generalizing poorly.
+
+---
+
+### Kernel Methods and Feature Maps
+
+Many QML models can be reframed as kernel methods.
+
+Classical perspective:
+- Feature map \( \phi(x) \)
+- Kernel function \( K(x, x') = \langle \phi(x), \phi(x') \rangle \)
+
+Quantum feature maps define kernels of the form:
+
+\[
+K(x, x') = |\langle \phi(x) | \phi(x') \rangle|^2
+\]
+
+If a classical kernel approximates this efficiently,
+the quantum model provides no computational advantage.
+
+---
+
+## Mathematical Formulation
+
+A generic QML model can be written as:
+
+\[
+f_\theta(x) = \langle 0 | U^\dagger(x, \theta) O U(x, \theta) | 0 \rangle
+\]
+
+From a learning-theoretic standpoint, this is equivalent to
+a classical parameterized function optimized via ERM.
+
+Training remains a **classical optimization loop**.
+
+---
+
+## Practical Implications for QML
+
+- Quantum models inherit classical failure modes
+- Strong classical baselines are mandatory
+- Performance gains must be attributed carefully
+- Classical simulability undermines claims of advantage
+
+Ignoring classical ML principles leads to misleading conclusions.
+
+---
+
+## Key Takeaways
+
+- QML models live within the classical ML framework
+- Learning objectives and optimization are classical
+- Quantum circuits define new hypothesis classes, not new learning rules
+- Classical ML literacy is essential for credible QML research
+
+
+
+---
+title: "Classical Machine Learning Essentials"
+stage: 0
+---
+
+# Motivation
+
+Before touching anything “quantum,” you need to be clear on something:
+
+> quantum machine learning does not replace classical machine learning — it sits inside it.
+
+Every QML model is still:
+- trained on data
+- evaluated with a loss
+- optimized using classical algorithms
+
+If you don’t understand how classical ML works, you won’t be able to tell:
+- whether your model is actually learning
+- whether it’s overfitting
+- whether a “quantum advantage” claim is even meaningful
+
+A lot of bad QML research comes from skipping this layer.
+
+This module fixes that.
+
+---
+
+# Core Concepts
+
+## Supervised Learning (What problem are we solving?)
+
+Most QML models are built for **supervised learning**.
+
+You are given:
+- inputs \( x \) (data)
+- outputs \( y \) (labels)
+
+and your goal is to learn a function:
+
+\[
+f_\theta(x) \approx y
+\]
+
+---
+
+### What actually defines a learning problem?
+
+There are four pieces:
+
+- **Input space** \( \mathcal{X} \): what your data looks like  
+- **Output space** \( \mathcal{Y} \): what you’re trying to predict  
+- **Hypothesis class** \( \mathcal{H} \): all functions your model can represent  
+- **Parameters** \( \theta \): what you tune during training  
+
+---
+
+### Where quantum fits in
+
+In QML:
+- \( f_\theta \) is implemented by a quantum circuit
+- \( \theta \) are gate parameters (rotation angles, etc.)
+- the hypothesis class is defined by the circuit architecture (ansatz)
+
+Nothing about the *learning setup* changes.
+
+Only the model class changes.
+
+---
+
+## Empirical Risk Minimization (What does “training” mean?)
+
+Training is not vague. It is a very specific objective:
+
+\[
+\hat{R}(\theta) = \frac{1}{N} \sum_{i=1}^{N} \mathcal{L}(f_\theta(x_i), y_i)
+\]
+
+This is called **empirical risk**.
+
+---
+
+### Translate this into plain language
+
+- You run your model on each data point  
+- You measure how wrong it is (loss)  
+- You average that error  
+- You try to make that average as small as possible  
+
+That’s it.
+
+---
+
+### Important clarification
+
+QML does **not** change this objective.
+
+Even if the model is quantum:
+
+> you are still minimizing a classical loss function over data.
+
+---
+
+## Optimization Landscapes (Why training is hard)
+
+If the objective is so simple, why isn’t training trivial?
+
+Because the function you are optimizing is messy.
+
+Loss functions in practice are:
+- high-dimensional
+- non-convex
+- full of weird geometry
+
+---
+
+### What can go wrong
+
+- **Local minima**: you get stuck in a “good but not best” solution  
+- **Saddle points**: flat regions that slow learning  
+- **Flat regions**: gradients are tiny → no progress  
+
+---
+
+### What’s different in QML
+
+QML adds an additional issue:
+
+> **barren plateaus** — regions where gradients are *almost zero everywhere*
+
+This makes training:
+- slow
+- unstable
+- sometimes impossible at scale
+
+---
+
+## Generalization (Does your model actually learn?)
+
+A model is not useful if it only memorizes training data.
+
+You care about:
+> performance on unseen data
+
+---
+
+### The key tradeoff
+
+Generalization depends on:
+
+- **Model capacity** (how complex your model is)
+- **Dataset size**
+- **Inductive bias** (what your model tends to learn)
+
+---
+
+### In QML terms
+
+Capacity is influenced by:
+- circuit depth
+- entanglement structure
+- choice of ansatz
+
+---
+
+### Failure mode
+
+- Too simple → underfitting  
+- Too complex → overfitting  
+
+More expressive is not always better.
+
+---
+
+## Kernel Methods and Feature Maps (Hidden structure)
+
+A lot of QML models are easier to understand through kernels.
+
+---
+
+### Classical view
+
+You take input data \( x \) and map it to a higher-dimensional space:
+
+\[
+\phi(x)
+\]
+
+Then define similarity as:
+
+\[
+K(x, x') = \langle \phi(x), \phi(x') \rangle
+\]
+
+---
+
+### Why this is useful
+
+Instead of building a complex model directly, you:
+- transform the data
+- use simple methods (like SVMs)
+
+---
+
+### Quantum version
+
+Quantum feature maps define:
+
+\[
+K(x, x') = |\langle \phi(x) | \phi(x') \rangle|^2
+\]
+
+This looks powerful because:
+- the feature space can be exponentially large
+
+---
+
+### But here’s the catch
+
+If a classical algorithm can compute or approximate this kernel efficiently:
+
+> the quantum model gives you no real advantage
+
+This is one of the most important reality checks in QML.
+
+---
+
+## Mathematical Formulation
+
+A typical QML model looks like:
+
+\[
+f_\theta(x) = \langle 0 | U^\dagger(x, \theta)\, O \, U(x, \theta) | 0 \rangle
+\]
+
+This might look very “quantum.”
+
+But structurally, it is just:
+
+> a parameterized function evaluated on data
+
+---
+
+### What matters
+
+- You still define a loss  
+- You still compute gradients  
+- You still run an optimizer  
+
+The entire training loop is classical.
+
+---
+
+## Intuition
+
+If you compress everything:
+
+- Data comes in  
+- A parameterized model processes it  
+- You compute an error  
+- You update parameters  
+
+That is machine learning.
+
+Quantum models only change:
+> how the function \( f_\theta \) is represented internally
+
+They do not change the learning paradigm.
+
+---
+
+# Implementation (Conceptual)
+
+## Minimal Training Loop
+
+```python
+for epoch in range(num_epochs):
+    for x, y in dataset:
+        y_pred = model(x, theta)
+        loss = compute_loss(y_pred, y)
+
+        grad = compute_gradient(loss, theta)
+        theta -= lr * grad
+```
+
+---
+
+## What changes in QML
+
+- `model(...)` → runs a quantum circuit  
+- `compute_gradient(...)` → uses parameter-shift or sampling  
+- everything else stays the same  
+
+---
+
+# Failure Modes & Pitfalls
+
+- Comparing against weak classical baselines  
+- Claiming “quantum advantage” without fair benchmarks  
+- Ignoring overfitting  
+- Using overly expressive circuits without enough data  
+- Misinterpreting noisy results as meaningful improvements  
+
+---
+
+# Further Reading
+
+- Bishop — Pattern Recognition and Machine Learning  
+- Murphy — Machine Learning: A Probabilistic Perspective  
+- Goodfellow et al. — Deep Learning  
+
+---
+
+# Key Takeaways
+
+1. QML models operate within the classical ML framework.
+2. Training is empirical risk minimization.
+3. Optimization challenges carry over — and often worsen.
+4. Generalization still depends on capacity vs data.
+5. Quantum models define new function classes, not new learning rules.

@@ -1,0 +1,345 @@
+---
+title: "Noise Models and NISQ Limitations"
+stage: 3
+---
+
+# Motivation
+
+So far, everything you’ve learned assumes something important:
+
+> your quantum circuit works perfectly
+
+But in reality:
+
+> it doesn’t
+
+---
+
+Modern quantum computers are **noisy**.
+
+Every operation you apply:
+
+- slightly corrupts the state  
+- introduces randomness  
+- reduces the reliability of your output  
+
+---
+
+This is why the current era of quantum computing is called:
+
+> **NISQ** — Noisy Intermediate-Scale Quantum  
+
+---
+
+Understanding noise isn’t optional.
+
+> it determines whether your model works at all  
+
+---
+
+# Core Concepts
+
+## What is Noise (intuitively)?
+
+Noise is anything that makes your quantum state drift away from what you intended.
+
+You prepare a state:
+
+\[
+|\psi\rangle
+\]
+
+But what you actually get is:
+
+\[
+\rho = \mathcal{E}(|\psi\rangle\langle\psi|)
+\]
+
+Where:
+
+- \( \mathcal{E} \) = noise process  
+- \( \rho \) = mixed (imperfect) state  
+
+---
+
+So instead of a clean vector:
+
+> you now have a *probabilistic mixture*  
+
+---
+
+## Why Noise is So Damaging
+
+Quantum information is fragile because:
+
+- it depends on precise amplitudes  
+- it depends on phase relationships  
+- entanglement is easily destroyed  
+
+---
+
+Even small errors:
+
+- accumulate over gates  
+- destroy interference patterns  
+- corrupt measurements  
+
+---
+
+## Common Noise Models
+
+These are simplified ways to model real hardware errors.
+
+---
+
+### Depolarizing Noise
+
+\[
+\mathcal{E}(\rho) = (1-p)\rho + p \frac{I}{2^n}
+\]
+
+Interpretation:
+
+- with probability \( p \), the state becomes completely random  
+
+---
+
+This is like:
+
+> your system “forgets everything”  
+
+---
+
+### Dephasing Noise
+
+\[
+\mathcal{E}(\rho) = (1-p)\rho + p Z\rho Z
+\]
+
+Interpretation:
+
+- phase information is lost  
+- amplitudes stay the same  
+
+---
+
+This breaks:
+
+> interference (a core quantum effect)  
+
+---
+
+### Amplitude Damping
+
+Models energy loss:
+
+- qubits decay from \( |1\rangle \rightarrow |0\rangle \)
+
+---
+
+This corresponds to:
+
+> physical relaxation of the system  
+
+---
+
+## Hardware Constraints
+
+Real devices have limits:
+
+---
+
+### Gate Errors
+
+Each gate has an error rate:
+
+- typically \( 10^{-3} \) to \( 10^{-2} \)
+
+So:
+
+> more gates = more accumulated error  
+
+---
+
+### Coherence Time
+
+- \( T_1 \): energy decay time  
+- \( T_2 \): phase coherence time  
+
+---
+
+If your circuit runs too long:
+
+> the system decoheres before finishing  
+
+---
+
+### Depth Limit
+
+Rough idea:
+
+\[
+\text{max depth} \sim \min\left(\frac{1}{\epsilon_{\text{gate}}}, \frac{T_2}{\tau_{\text{gate}}}\right)
+\]
+
+---
+
+So:
+
+- deeper circuits → worse results  
+- shallow circuits → more reliable  
+
+---
+
+## Intuition (3Blue1Brown style)
+
+Imagine trying to:
+
+- carefully balance a spinning object  
+- while someone keeps nudging it  
+
+---
+
+Each gate = small nudge  
+
+Eventually:
+
+> the system loses its structure completely  
+
+---
+
+That’s noise.
+
+---
+
+## Why This Matters for QML
+
+Noise directly affects:
+
+- expectation values  
+- gradients  
+- training stability  
+
+---
+
+In practice:
+
+- gradients become noisy  
+- optimization becomes unstable  
+- results vary between runs  
+
+---
+
+So:
+
+> even if your theory is correct, your implementation may fail  
+
+---
+
+# Implementation
+
+## Adding Noise in PennyLane
+
+```python
+import pennylane as qml
+
+dev = qml.device("default.mixed", wires=1)
+
+@qml.qnode(dev)
+def circuit(p):
+    qml.RY(0.5, wires=0)
+    qml.DepolarizingChannel(p, wires=0)
+    return qml.expval(qml.PauliZ(0))
+
+for p in [0.0, 0.05, 0.1, 0.2]:
+    print(p, circuit(p))
+```
+
+---
+
+## What’s Happening
+
+- as noise increases  
+- expectation values degrade  
+
+---
+
+Eventually:
+
+> output becomes almost random  
+
+---
+
+# Experiments
+
+## Noise vs Accuracy
+
+- train a VQC  
+- increase noise level  
+- track accuracy  
+
+---
+
+## Depth vs Noise
+
+- increase circuit depth  
+- observe performance drop  
+
+---
+
+## Gradient Noise
+
+- compute gradients under noise  
+- observe variance increase  
+
+---
+
+# Error Mitigation (brief overview)
+
+You can try to reduce noise effects:
+
+- run circuits at different noise levels → extrapolate  
+- correct measurement errors  
+- average over many runs  
+
+---
+
+But:
+
+> mitigation adds cost and is not perfect  
+
+---
+
+Full error correction:
+
+- requires thousands of physical qubits  
+- not practical yet  
+
+---
+
+# Failure Modes & Pitfalls
+
+- Trusting simulator results without noise  
+- Ignoring hardware constraints  
+- Using deep circuits on NISQ devices  
+- Not averaging over multiple runs  
+- Claiming “advantage” without noise analysis  
+
+---
+
+# Further Reading
+
+- Preskill — Quantum Computing in the NISQ era  
+- Nielsen & Chuang — Quantum operations  
+- Endo et al. — Error mitigation techniques  
+
+---
+
+# Key Takeaways
+
+1. Noise turns pure states into mixed states.
+2. Errors accumulate with circuit depth.
+3. Coherence time limits how long circuits can run.
+4. Noise degrades gradients, outputs, and training.
+5. Shallow, structured circuits are more robust.
+6. Error mitigation helps but does not fully solve the problem.

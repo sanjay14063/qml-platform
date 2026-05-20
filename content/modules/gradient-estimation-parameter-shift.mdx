@@ -1,0 +1,367 @@
+---
+title: "Gradient Estimation & Parameter Shift Rule"
+stage: 3
+---
+
+# Motivation
+
+Training variational quantum circuits requires gradients $\partial C / \partial \theta_i$. Finite differences are unstable and scale poorly. The parameter-shift rule provides exact gradients for gates of the form $e^{-i\theta G/2}$ where $G^2 = I$, using only two circuit evaluations per parameter.
+
+# Core Concepts
+
+## Mathematical Definitions
+
+For $U(\theta) = e^{-i\theta G/2}$ with $G^2 = I$ (e.g. $G = X, Y, Z$):
+
+$$
+\frac{\partial}{\partial \theta} \langle O \rangle_\theta = \frac{1}{2} \left( \langle O \rangle_{\theta + \pi/2} - \langle O \rangle_{\theta - \pi/2} \right)
+$$
+
+**General parameter-shift**: For gates with more complex spectra, similar formulas exist with additional shift terms.
+
+## Key Equations
+
+- **Product rule**: For chains of parameterized gates, gradients sum over each gate's contribution
+- **Variance**: Each gradient component requires 2 circuit evaluations; total cost $O(2p)$ for $p$ parameters
+
+## Intuition
+
+{/* TODO: Why ±π/2? Connection to derivative of sin/cos */}
+
+# Implementation
+
+## PennyLane / Qiskit Examples
+
+```python
+# TODO: qml.grad(cost)(params) in PennyLane — automatic parameter-shift
+# dev = qml.device("default.qubit", wires=2)
+# @qml.qnode(dev, diff_method="parameter-shift")
+# def circuit(params):
+#     ...
+# grad = qml.grad(circuit)(params)
+```
+
+## Circuit Diagrams
+
+{/* TODO: Two circuits for θ±π/2 */}
+
+# Experiments
+
+## Noise-Aware Experiments
+
+{/* TODO: Gradient noise under shot noise; biased gradients from hardware noise */}
+
+## Scaling Behavior
+
+{/* TODO: Gradient estimation cost vs parameter count */}
+
+# Failure Modes & Pitfalls
+
+- Parameter-shift assumes perfect gates; hardware noise biases gradients
+- Cost scales linearly with parameters; large circuits are expensive
+- Stochastically sampled gradients (finite shots) add variance
+- Some gates (e.g. CRY) require generalized parameter-shift with more terms
+
+# Further Reading
+
+- Mitarai et al., Quantum circuit learning
+- Schuld et al., Evaluating analytic gradients
+- PennyLane: Gradients and training
+
+# Key Takeaways
+
+1. Parameter-shift gives exact gradients for rotation gates with $G^2 = I$.
+2. Cost is 2 evaluations per parameter; no finite-difference instability.
+3. Shot noise and hardware noise affect gradient quality; consider variance and bias.
+
+---
+title: "Gradient Estimation & Parameter Shift Rule"
+stage: 3
+---
+
+# Motivation
+
+At this point, you can build a variational quantum model.
+
+- data → feature map  
+- circuit → transforms state  
+- measurement → gives output  
+
+Now comes the hard part:
+
+> how do you *train* it?
+
+---
+
+In classical ML:
+
+- gradients are computed using backprop  
+
+In quantum ML:
+
+- you cannot directly “differentiate through” a quantum circuit  
+
+So the question becomes:
+
+> how do you compute gradients when your model is a physical system?
+
+---
+
+# Core Concepts
+
+## The Problem
+
+You want:
+
+\[
+\frac{\partial C}{\partial \theta}
+\]
+
+Where:
+
+- \( \theta \) = circuit parameter  
+- \( C \) = cost function (based on measurement outcomes)  
+
+---
+
+Naively, you could use finite differences:
+
+\[
+\frac{C(\theta + \epsilon) - C(\theta - \epsilon)}{2\epsilon}
+\]
+
+But this is:
+
+- noisy  
+- unstable  
+- inefficient  
+
+---
+
+## The Parameter-Shift Rule (Core Idea)
+
+For many quantum gates:
+
+\[
+U(\theta) = e^{-i\theta G/2}
+\]
+
+Where:
+
+- \( G \) is a generator (like \( X, Y, Z \))  
+- \( G^2 = I \)  
+
+---
+
+Then the gradient is:
+
+\[
+\frac{\partial}{\partial \theta} \langle O \rangle_\theta =
+\frac{1}{2} \left(
+\langle O \rangle_{\theta + \frac{\pi}{2}} -
+\langle O \rangle_{\theta - \frac{\pi}{2}}
+\right)
+\]
+
+---
+
+## What This Means (important)
+
+Instead of computing derivatives numerically:
+
+> you evaluate the circuit twice, at shifted parameters
+
+That’s it.
+
+---
+
+So:
+
+- no approximations  
+- no tiny epsilon  
+- exact gradient (in theory)  
+
+---
+
+## Why ±π/2? (intuition)
+
+Most parameterized gates are rotations:
+
+\[
+R(\theta) = \cos(\theta/2) I - i \sin(\theta/2) G
+\]
+
+So expectation values behave like:
+
+- sine and cosine functions of \( \theta \)
+
+---
+
+And we know:
+
+\[
+\frac{d}{d\theta} \sin(\theta) = \cos(\theta)
+\]
+
+\[
+\frac{d}{d\theta} \cos(\theta) = -\sin(\theta)
+\]
+
+---
+
+The parameter-shift rule exploits this:
+
+> shifting by \( \pm \frac{\pi}{2} \) effectively turns sine into cosine  
+
+So the derivative becomes a difference of two shifted evaluations.
+
+---
+
+## Multi-Parameter Circuits
+
+If you have:
+
+- \( p \) parameters  
+
+Then:
+
+> each parameter requires 2 circuit evaluations  
+
+Total cost:
+
+\[
+O(2p)
+\]
+
+---
+
+## Generalized Parameter Shift
+
+Some gates don’t satisfy \( G^2 = I \).
+
+In those cases:
+
+- more shift terms are needed  
+- gradients become a weighted sum of multiple evaluations  
+
+---
+
+So:
+
+> not all gates are equally cheap to differentiate  
+
+---
+
+## Intuition (3Blue1Brown style)
+
+Think of your circuit like a machine with knobs.
+
+Each parameter \( \theta \) is a knob.
+
+---
+
+To see how sensitive the output is:
+
+- turn the knob slightly forward  
+- turn it slightly backward  
+- compare the outputs  
+
+---
+
+But instead of “slightly”:
+
+> quantum mechanics gives you the exact shift to use  
+
+---
+
+# Implementation
+
+## Automatic Gradients (PennyLane)
+
+```python
+import pennylane as qml
+import numpy as np
+
+dev = qml.device("default.qubit", wires=2)
+
+@qml.qnode(dev, diff_method="parameter-shift")
+def circuit(params):
+    qml.RY(params[0], wires=0)
+    qml.RY(params[1], wires=1)
+    qml.CNOT(wires=[0, 1])
+    return qml.expval(qml.PauliZ(0))
+
+params = np.array([0.1, 0.2], requires_grad=True)
+
+grad_fn = qml.grad(circuit)
+grads = grad_fn(params)
+```
+
+---
+
+## What’s Happening Under the Hood
+
+For each parameter:
+
+- evaluate circuit at \( \theta + \pi/2 \)  
+- evaluate at \( \theta - \pi/2 \)  
+- take the difference  
+
+---
+
+You don’t see it, but:
+
+> PennyLane is applying parameter-shift automatically  
+
+---
+
+# Experiments
+
+## Finite Difference vs Parameter Shift
+
+- compute gradient using finite difference  
+- compute using parameter-shift  
+- compare stability and noise  
+
+---
+
+## Shot Noise Effects
+
+- reduce number of shots  
+- observe gradient variance increase  
+
+---
+
+## Scaling with Parameters
+
+- increase number of parameters  
+- measure total computation time  
+
+---
+
+# Failure Modes & Pitfalls
+
+- Assuming gradients are “free” (they’re expensive: 2 evals per parameter)  
+- Ignoring shot noise → leads to noisy updates  
+- Using too many parameters → training becomes slow  
+- Hardware noise introduces bias in gradients  
+- Not all gates support simple parameter-shift  
+
+---
+
+# Further Reading
+
+- Schuld et al. — Evaluating analytic gradients on quantum hardware  
+- Mitarai et al. — Quantum circuit learning  
+- PennyLane docs — Differentiation  
+
+---
+
+# Key Takeaways
+
+1. Parameter-shift computes exact gradients using circuit evaluations.
+2. Each parameter requires two forward passes.
+3. It exploits the trigonometric structure of quantum gates.
+4. Gradients are accurate but computationally expensive.
+5. Noise (shot + hardware) affects gradient quality.
+6. It enables training of variational quantum models.

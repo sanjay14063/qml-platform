@@ -1,0 +1,64 @@
+---
+title: "Limitations of QML under Noise"
+description: "Noise fundamentally alters the trainability and generalization behavior of quantum models, often dominating learning dynamics in practical settings."
+---
+
+# Limitations of QML under Noise
+
+Noise is not a secondary implementation detail in quantum machine learning—it is a defining factor of the effective model class. In many practical settings, noise determines whether learning is possible at all, regardless of circuit design.
+
+## Where noise enters quantum systems
+
+Quantum noise originates from multiple physical and computational sources:
+
+- Gate errors during circuit execution
+- Decoherence from interaction with the environment
+- Measurement uncertainty and sampling noise (shot noise)
+- Hardware-specific calibration drift and control imperfections
+
+Each of these introduces deviations between the ideal circuit and the executed computation, accumulating across circuit depth.
+
+## How noise affects learning dynamics
+
+Noise directly alters optimization behavior and model expressivity:
+
+- Gradients become noisy, biased, or vanish entirely
+- Effective loss landscapes become flatter or distorted
+- Signal-to-noise ratio decreases with circuit depth and system size
+- Barren plateau effects are often amplified under realistic noise conditions
+
+As a result, models that appear trainable in simulation may fail to learn on hardware.
+
+## Simulation vs hardware gap
+
+A persistent issue in QML research is over-reliance on noiseless or simplified simulations. In these regimes, models may show structured gradients and apparent learning capability that does not survive deployment on real quantum devices.
+
+This gap is not cosmetic—it can completely invalidate performance claims if noise is not explicitly modeled during training and evaluation.
+
+## Common mitigation strategies
+
+Several approaches attempt to reduce the impact of noise, though none eliminate it fully:
+
+- Error mitigation techniques such as zero-noise extrapolation
+- Noise-aware training procedures that incorporate hardware models
+- Shallow or hardware-efficient circuit designs
+- Reducing circuit depth to limit error accumulation
+
+These methods improve robustness but typically trade off against expressivity.
+
+## Common failure mode in QML experiments
+
+A frequent error pattern is:
+
+1. Design and validate a quantum model in ideal simulation
+2. Observe good training behavior and convergence
+3. Deploy on noisy hardware
+4. Experience degraded or collapsed performance
+
+This failure mode highlights the importance of incorporating noise assumptions from the outset rather than treating them as an afterthought.
+
+## Practical takeaway
+
+Noise defines a hard constraint on quantum machine learning systems. Any realistic QML model must be designed and evaluated under noise conditions comparable to the target hardware.
+
+Ignoring noise does not simplify the problem—it changes it entirely.

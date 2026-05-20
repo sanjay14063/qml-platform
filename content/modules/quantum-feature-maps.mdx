@@ -1,0 +1,337 @@
+
+---
+title: "Quantum Feature Maps"
+stage: 2
+---
+
+# Motivation
+
+Right now, you have a working model:
+
+- PQC → transforms a quantum state  
+- Observable → gives you an output  
+
+But there’s a missing piece:
+
+> where does the *data* actually enter the system?
+
+In classical ML, data is just numbers in a vector.
+
+In quantum ML, data has to be turned into a **quantum state**.
+
+That process is called a **feature map**.
+
+---
+
+Think of it like this:
+
+- Classical ML → map data into feature space  
+- Quantum ML → map data into **Hilbert space**
+
+Same idea. Much stranger geometry.
+
+---
+
+# Core Concepts
+
+## What is a Feature Map (intuitively)?
+
+A feature map is just a function:
+
+\[
+\mathbf{x} \rightarrow |\phi(\mathbf{x})\rangle
+\]
+
+You start with:
+
+\[
+|0\rangle^{\otimes n}
+\]
+
+Then apply a data-dependent circuit:
+
+\[
+|\phi(\mathbf{x})\rangle = U(\mathbf{x}) |0\rangle
+\]
+
+So instead of feeding numbers into a model, you:
+
+> turn numbers into a quantum state, then let physics do the computation
+
+---
+
+## Why This Matters
+
+In classical ML:
+
+- Feature engineering = manually designing transformations  
+
+In quantum ML:
+
+- the **feature map *is*** the transformation  
+
+So:
+
+> your model’s power depends heavily on how you encode the data
+
+Bad encoding → useless model  
+Good encoding → meaningful structure  
+
+---
+
+## Angle Encoding (simplest one)
+
+This is the most intuitive place to start.
+
+Each data value controls a rotation:
+
+\[
+x_i \rightarrow R_Y(x_i)
+\]
+
+So if:
+
+\[
+\mathbf{x} = (x_1, x_2)
+\]
+
+You apply:
+
+- rotate qubit 1 by \( x_1 \)  
+- rotate qubit 2 by \( x_2 \)  
+
+---
+
+### What’s actually happening?
+
+Each qubit becomes:
+
+\[
+\cos(x_i/2)|0\rangle + \sin(x_i/2)|1\rangle
+\]
+
+So your data is now stored in **amplitudes**.
+
+---
+
+### Limitation
+
+Without entanglement:
+
+- each feature is independent  
+- no interaction between features  
+
+So the model is weak.
+
+---
+
+## Adding Entanglement (this is where it gets interesting)
+
+Now we introduce gates like CNOT.
+
+This creates correlations between qubits.
+
+Effect:
+
+> features start interacting multiplicatively
+
+---
+
+Example idea:
+
+- feature 1 affects qubit 1  
+- feature 2 affects qubit 2  
+- entanglement mixes them  
+
+Now the system can represent:
+
+- \( x_1 x_2 \)-type interactions  
+- nonlinear relationships  
+
+---
+
+## Amplitude Encoding (very powerful, very annoying)
+
+Instead of mapping each feature to a rotation, we directly encode:
+
+\[
+\mathbf{x} \rightarrow \sum_i x_i |i\rangle
+\]
+
+---
+
+### Why people get excited about this
+
+You can store:
+
+- \( 2^n \) features using only \( n \) qubits  
+
+That’s exponential compression.
+
+---
+
+### Why it’s annoying in practice
+
+- requires normalization  
+- state preparation is expensive  
+- not hardware-friendly  
+
+So:
+
+> great in theory, painful in reality  
+
+---
+
+## Hamiltonian Encoding (more physics-heavy)
+
+Instead of rotations, define a Hamiltonian:
+
+\[
+U(\mathbf{x}) = e^{-i H(\mathbf{x})}
+\]
+
+This lets data influence:
+
+- phases  
+- interactions  
+- evolution  
+
+This is used in more advanced QML and quantum simulation settings.
+
+---
+
+## Key Insight (important)
+
+All feature maps do one thing:
+
+> they decide the geometry of your data in Hilbert space
+
+And that geometry determines:
+
+- what patterns are easy to learn  
+- what patterns are impossible  
+
+---
+
+## Connection to Kernels
+
+Later, you’ll see:
+
+\[
+k(\mathbf{x}, \mathbf{x}') = |\langle \phi(\mathbf{x}) | \phi(\mathbf{x}') \rangle|^2
+\]
+
+This is a **quantum kernel**.
+
+So:
+
+> feature maps define kernels  
+
+This is exactly like classical kernel methods — just in a different space.
+
+---
+
+## Intuition
+
+Compress everything:
+
+- Feature map = data → quantum state  
+- Circuit = transforms that state  
+- Measurement = extracts result  
+
+So:
+
+> the feature map is the *entry point* of your data into the quantum world  
+
+---
+
+# Implementation
+
+## Angle Encoding (PennyLane)
+
+```python
+import pennylane as qml
+
+def angle_encoding(x, wires):
+    for i, xi in enumerate(x):
+        qml.RY(xi, wires=wires[i])
+```
+
+---
+
+## Adding Entanglement
+
+```python
+def entangle(wires):
+    for i in range(len(wires) - 1):
+        qml.CNOT(wires=[wires[i], wires[i+1]])
+```
+
+---
+
+## Combined Feature Map
+
+```python
+def feature_map(x, wires):
+    angle_encoding(x, wires)
+    entangle(wires)
+```
+
+---
+
+# Experiments
+
+## No Entanglement vs Entanglement
+
+- Train a model without CNOTs  
+- Train with CNOTs  
+- Compare performance  
+
+You should see:
+
+> entanglement increases model power  
+
+---
+
+## Scaling Features
+
+- Try increasing input dimension  
+- Observe how many qubits you need  
+
+---
+
+## Sensitivity to Encoding
+
+- Rescale input data  
+- Observe output changes  
+
+This matters more than you think.
+
+---
+
+# Failure Modes & Pitfalls
+
+- Treating encoding as a minor detail (it’s not)  
+- Using amplitude encoding without understanding cost  
+- Not normalizing inputs properly  
+- Ignoring entanglement (kills expressivity)  
+- Assuming “quantum = better” (depends entirely on encoding)  
+
+---
+
+# Further Reading
+
+- Schuld & Petruccione — Ch. on data encoding  
+- Pérez-Salinas et al. — Data re-uploading  
+- PennyLane docs — Feature maps  
+
+---
+
+# Key Takeaways
+
+1. Feature maps convert classical data into quantum states.
+2. Encoding choice determines model performance.
+3. Angle encoding is simple and robust.
+4. Amplitude encoding is powerful but impractical in many cases.
+5. Entanglement introduces feature interactions and nonlinearity.
+6. Feature maps define the geometry that quantum models learn on.

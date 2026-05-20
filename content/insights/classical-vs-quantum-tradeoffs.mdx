@@ -1,0 +1,83 @@
+---
+title: "Classical vs Quantum Tradeoffs"
+description: "Quantum models must be evaluated against strong classical baselines before any claim of advantage is meaningful."
+---
+
+# Classical vs Quantum Tradeoffs
+
+A central constraint in quantum machine learning is that “quantum” does not automatically imply “better.” Most proposed quantum models only become meaningful once they are measured against strong, well-tuned classical baselines under identical problem constraints.
+
+The real question is not whether a quantum model works in isolation, but whether it survives direct comparison under realistic assumptions about data, compute, and optimization effort.
+
+## What is actually being traded off
+
+Quantum machine learning systems operate under multiple competing constraints. Improvements in one dimension often degrade another:
+
+- Expressive power vs computational cost
+- Potential quantum speedups vs classical optimization maturity
+- Circuit depth vs trainability under noise
+- Model novelty vs empirical performance stability on finite datasets
+- Quantum feature encoding richness vs classical feature engineering effectiveness
+
+These are not theoretical distinctions. They determine whether a model is trainable at all, and whether any observed performance difference is meaningful or accidental.
+
+## Why classical baselines dominate evaluation
+
+Classical machine learning is not a weak reference point. It includes highly optimized methods that are extremely hard to beat in practice:
+
+- Linear and logistic models with strong regularization
+- Kernel methods (SVMs, RBF kernels)
+- Gradient-boosted trees and ensemble models
+- Deep neural networks tuned over decades of engineering
+
+Because of this, most “quantum advantage” claims fail once proper tuning of classical baselines is performed. In many cases, the apparent quantum benefit disappears when classical models are given equivalent effort in feature engineering and hyperparameter tuning.
+
+## The hidden difficulty: equivalence of effort
+
+A common mistake in QML evaluation is asymmetry of effort:
+
+- Quantum model: carefully constructed circuit + tuned parameters
+- Classical model: default architecture or weak baseline
+
+This creates misleading comparisons. A fair evaluation requires parity in:
+
+- feature engineering effort
+- hyperparameter tuning budget
+- training iterations and optimization care
+- dataset preprocessing assumptions
+
+Without this, comparisons are not scientifically meaningful.
+
+## When quantum models *might* matter
+
+Quantum models are not useless—they are conditional tools. They become relevant when:
+
+- the data has structure that aligns with quantum feature spaces
+- classical representations become inefficient or high-dimensional
+- hardware-aware constraints are explicitly part of the problem design
+- the model is used as part of a hybrid classical–quantum pipeline
+
+Even in these cases, gains are usually incremental rather than categorical.
+
+## Common failure mode in QML research
+
+Most ineffective QML claims follow a predictable pattern:
+
+1. Define a quantum model with limited expressivity
+2. Compare against under-optimized classical baseline
+3. Observe marginal improvement or parity
+4. Generalize to claims of quantum advantage
+
+This is not a modeling breakthrough; it is an evaluation failure.
+
+## Practical takeaway
+
+Treat classical models as the default solution space, not a baseline to casually outperform.
+
+A quantum model is only meaningful if it demonstrates improvement under:
+
+- properly tuned classical alternatives
+- matched optimization budgets
+- realistic noise and hardware constraints
+
+In most current scenarios, quantum machine learning is best understood as a constrained extension of classical ML rather than a replacement.

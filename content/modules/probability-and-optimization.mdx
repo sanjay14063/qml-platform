@@ -1,0 +1,380 @@
+---
+title: "Probability, Noise, and Optimization"
+stage: 0
+---
+
+# Motivation
+
+Quantum computers do not output deterministic values. Instead, they produce **random samples** from probability distributions. Training quantum models therefore requires statistical estimation and optimization under noise.
+
+This module introduces probability and optimization concepts needed to understand measurement uncertainty, gradient estimation, and training dynamics in QML.
+
+# Core Concepts
+
+## Random Variables and Expectation
+
+A random variable $X$ takes values according to a probability distribution $P(X=x)$.
+
+The expectation value is:
+
+$$
+\mathbb{E}[X] = \sum_x x P(x)
+$$
+
+The variance measures uncertainty:
+
+$$
+\operatorname{Var}(X) = \mathbb{E}[X^2] - (\mathbb{E}[X])^2
+$$
+
+## Sampling and Convergence
+
+When estimating expectations from $N$ samples:
+
+- The estimate converges as $N \to \infty$
+- The standard error scales as $1/\sqrt{N}$
+
+> In QML, every expectation value is estimated from *finite shots*.
+
+## Gradients
+
+Given a function $f(\theta)$, the gradient is:
+
+$$
+\nabla f = \left( \frac{\partial f}{\partial \theta_1}, \dots, \frac{\partial f}{\partial \theta_d} \right)
+$$
+
+Gradients indicate the direction of steepest ascent.
+
+## Gradient Descent
+
+To minimize $f$:
+
+$$
+\theta \leftarrow \theta - \eta \nabla f(\theta)
+$$
+
+The learning rate $\eta$ controls stability and speed.
+
+## Key Equations
+
+- Variance scaling: $\operatorname{Var}(\bar{X}) = \sigma^2 / N$
+- Gradient update: $\theta_{t+1} = \theta_t - \eta \nabla f$
+- Noisy gradients arise from finite sampling
+
+## Intuition
+
+QML optimization balances:
+- **Statistical noise** (shots)
+- **Landscape geometry**
+- **Learning rate stability**
+
+# Implementation
+
+## Gradient Descent Example
+
+```python
+import numpy as np
+
+f = lambda t: t[0]**2 + t[1]**2
+grad = lambda t: np.array([2*t[0], 2*t[1]])
+
+theta = np.array([1.0, 1.0])
+for _ in range(50):
+    theta -= 0.1 * grad(theta)
+
+print("Minimum:", theta)
+
+---
+title: "Probability, Noise, and Optimization"
+stage: 0
+---
+
+# Motivation
+
+Unlike classical programs, quantum computers don’t just “give you an answer.”
+
+You run a circuit once, you get one result. Run it again, you might get something else. What you actually get is a **sample from a probability distribution**.
+
+That single idea changes everything.
+
+In classical ML, you usually assume:
+- your computations are exact
+- gradients are clean
+- outputs are deterministic
+
+In quantum ML:
+- outputs are noisy
+- expectations must be *estimated*
+- gradients themselves are random variables
+
+So training a quantum model is not just optimization. It is:
+
+> optimization under uncertainty, with limited information per step.
+
+This module builds the intuition needed to deal with that.
+
+---
+
+# Core Concepts
+
+## Random Variables and Expectation
+
+Start simple.
+
+A **random variable** is just something that can take different values, each with some probability.
+
+Example:
+- measuring a qubit might give 0 or 1
+- but not always the same one
+
+We write this as:
+
+$$
+P(X = x)
+$$
+
+which just means:
+> the probability that $X$ takes value $x$
+
+---
+
+### Expectation (What you actually care about)
+
+Instead of individual outcomes, we care about the *average behavior*:
+
+$$
+\mathbb{E}[X] = \sum_x x P(x)
+$$
+
+This is the expected value.
+
+Interpretation:
+> if you repeat the experiment many times, this is the average you converge to
+
+In QML:
+- cost functions are usually expectation values
+- not single measurements
+
+---
+
+### Variance (How unstable things are)
+
+$$
+\operatorname{Var}(X) = \mathbb{E}[X^2] - (\mathbb{E}[X])^2
+$$
+
+This tells you:
+> how spread out your results are
+
+Low variance → stable  
+High variance → noisy
+
+In quantum systems, variance is unavoidable.
+
+---
+
+## Sampling and Convergence
+
+Here’s the part people underestimate.
+
+You don’t get expectations directly.
+
+You estimate them using **samples (shots)**.
+
+If you take $N$ samples:
+
+- your estimate improves as $N$ increases
+- but not linearly
+
+The key scaling:
+
+$$
+\text{error} \sim \frac{1}{\sqrt{N}}
+$$
+
+This is slow.
+
+To reduce error by 10x → you need 100x more samples.
+
+---
+
+### Why this matters in QML
+
+Every time you evaluate a cost function:
+- you run a circuit many times
+- you average the results
+
+So:
+
+> computation cost = circuit runs × number of shots
+
+This is one of the biggest bottlenecks in QML.
+
+---
+
+## Gradients
+
+In optimization, you care about how things change.
+
+For a function $f(\theta)$:
+
+$$
+\nabla f = \left( \frac{\partial f}{\partial \theta_1}, \dots, \frac{\partial f}{\partial \theta_d} \right)
+$$
+
+This vector tells you:
+> which direction increases the function fastest
+
+So to minimize, you go in the opposite direction.
+
+---
+
+### Important shift for QML
+
+In classical ML:
+- gradients are usually exact (or very low noise)
+
+In QML:
+- gradients are **estimated from samples**
+- so they are noisy
+
+Meaning:
+> even your “direction of improvement” is uncertain
+
+---
+
+## Gradient Descent
+
+The basic update rule:
+
+$$
+\theta \leftarrow \theta - \eta \nabla f(\theta)
+$$
+
+Where:
+- $\eta$ = learning rate
+
+---
+
+### What actually happens in practice
+
+Each step:
+1. Estimate cost using samples
+2. Estimate gradient using samples
+3. Update parameters
+
+So your update is not clean:
+
+> it’s jittery, approximate, and sometimes wrong
+
+---
+
+### Learning Rate (This becomes more sensitive)
+
+- Too large → instability, divergence
+- Too small → painfully slow learning
+
+Because gradients are noisy, choosing $\eta$ is harder than in classical ML.
+
+---
+
+## Key Equations
+
+- Expectation: $\mathbb{E}[X] = \sum_x x P(x)$  
+- Variance: $\operatorname{Var}(X) = \mathbb{E}[X^2] - (\mathbb{E}[X])^2$  
+- Sampling error: $\sim 1/\sqrt{N}$  
+- Gradient: $\nabla f$  
+- Update: $\theta_{t+1} = \theta_t - \eta \nabla f$
+
+---
+
+## Intuition
+
+Everything in QML training is a tradeoff between:
+
+- **Noise** (from finite sampling)
+- **Cost of computation** (more shots = slower)
+- **Optimization stability** (learning rate vs noise)
+
+You are constantly balancing:
+
+> “Do I spend more time getting a better estimate, or move faster with noisy information?”
+
+There is no perfect answer.
+
+---
+
+# Implementation
+
+## Gradient Descent Example
+
+```python
+import numpy as np
+
+# Simple quadratic function
+f = lambda t: t[0]**2 + t[1]**2
+grad = lambda t: np.array([2*t[0], 2*t[1]])
+
+theta = np.array([1.0, 1.0])
+
+for _ in range(50):
+    theta -= 0.1 * grad(theta)
+
+print("Minimum:", theta)
+```
+
+---
+
+## What to Observe
+
+- The function is smooth → convergence is easy
+- Gradients are exact → updates are stable
+
+Now imagine:
+- each gradient is slightly wrong
+- each step has noise
+
+That’s QML.
+
+---
+
+# Experiments
+
+## Add Noise to Gradients
+
+- Add random noise to `grad`
+- Observe convergence instability
+
+## Sampling Simulation
+
+- Estimate a mean using random samples
+- Watch how error decreases with $N$
+
+---
+
+# Failure Modes & Pitfalls
+
+- Assuming outputs are deterministic
+- Using too few shots → extremely noisy training
+- Using too large a learning rate with noisy gradients
+- Ignoring variance in cost estimation
+- Expecting smooth convergence (it often isn’t)
+
+---
+
+# Further Reading
+
+- Murphy — Machine Learning: A Probabilistic Perspective  
+- Bishop — Pattern Recognition and Machine Learning  
+- Schuld & Petruccione — Quantum Machine Learning  
+
+---
+
+# Key Takeaways
+
+1. Quantum outputs are probabilistic, not deterministic.
+2. Expectations must be estimated from samples.
+3. Error decreases slowly with more samples.
+4. Gradients in QML are noisy.
+5. Optimization is fundamentally stochastic and less stable than classical ML.

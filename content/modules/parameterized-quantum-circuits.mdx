@@ -1,0 +1,265 @@
+---
+title: "Parameterized Quantum Circuits"
+stage: 1
+---
+
+# Motivation
+
+So far:
+
+- You know what a quantum state is (a vector)
+- You know how to extract a number from it (expectation values)
+
+Now the missing piece is:
+
+> how do we *control* the state?
+
+Because in machine learning, we don’t just compute outputs — we **learn** them.
+
+This is where parameterized quantum circuits (PQCs) come in.
+
+They are:
+
+> quantum circuits with tunable parameters that we optimize
+
+If you think in ML terms:
+
+- Neural network → layers + weights  
+- PQC → gates + parameters  
+
+Same idea. Different math.
+
+---
+
+# Core Concepts
+
+## Unitary Evolution (what circuits actually do)
+
+Quantum states don’t just change randomly.
+
+They evolve through **unitary transformations**:
+
+\[
+U^\dagger U = I
+\]
+
+This condition ensures:
+- norm is preserved  
+- probabilities remain valid  
+
+A parameterized circuit defines:
+
+\[
+|\psi(\theta)\rangle = U(\theta)|0\rangle
+\]
+
+So:
+
+1. start with a fixed initial state  
+2. apply a parameterized transformation  
+3. get a new state that depends on \( \theta \)  
+
+---
+
+## Parameterized Gates (where learning happens)
+
+Instead of fixed gates, we use **rotation gates with parameters**.
+
+Example:
+
+\[
+R_X(\theta) = e^{-i\theta X/2}
+\]
+
+This is not just math — it’s a *continuous transformation*.
+
+Changing \( \theta \):
+- smoothly rotates the state  
+- changes measurement outcomes  
+- changes the final prediction  
+
+---
+
+### Key insight
+
+> parameters control the geometry of the state space
+
+This is the quantum equivalent of weights in a neural network.
+
+---
+
+## Building Circuits (layered structure)
+
+A full circuit is built by stacking layers:
+
+\[
+U(\theta) = U_L(\theta_L)\cdots U_2(\theta_2) U_1(\theta_1)
+\]
+
+Each layer typically includes:
+
+- single-qubit rotations (learnable)
+- entangling gates (fixed)
+
+Example structure:
+
+- RY rotations on all qubits  
+- CNOT chain for entanglement  
+- repeat  
+
+---
+
+## Why Entanglement Matters
+
+Without entanglement:
+
+- each qubit evolves independently  
+- model = basically classical  
+
+With entanglement:
+
+- qubits become correlated  
+- model can represent complex joint structures  
+
+This is where quantum models *can* gain expressive power.
+
+---
+
+## Expressivity vs Trainability
+
+This is the most important tradeoff in PQCs.
+
+Deeper circuits:
+
+- more expressive  
+- can represent complex functions  
+
+But also:
+
+- gradients vanish → **barren plateaus**  
+- noise gets amplified  
+- training becomes unstable  
+
+---
+
+### Barren Plateaus (critical issue)
+
+In many PQCs:
+
+- gradient ≈ 0 almost everywhere  
+
+So optimization fails.
+
+This is not a small issue — it’s one of the main bottlenecks in QML.
+
+---
+
+## PQCs as ML Models
+
+A full model looks like:
+
+\[
+f(\theta) = \langle \psi(\theta) | O | \psi(\theta) \rangle
+\]
+
+Break it down:
+
+- \( \theta \) → parameters  
+- circuit → transforms input  
+- observable → extracts output  
+
+This is structurally identical to:
+
+> neural network → forward pass → scalar output  
+
+---
+
+## Intuition
+
+Compress everything:
+
+- PQC = parameterized transformation of a quantum state  
+- Parameters control rotations in Hilbert space  
+- Output is an expectation value  
+
+So:
+
+> a PQC is just a differentiable function built from quantum operations  
+
+---
+
+# Implementation
+
+## Simple PQC in PennyLane
+
+```python
+import pennylane as qml
+import numpy as np
+
+dev = qml.device("default.qubit", wires=1)
+
+@qml.qnode(dev)
+def pqc(theta):
+    qml.RY(theta[0], wires=0)
+    qml.RZ(theta[1], wires=0)
+    return qml.expval(qml.PauliZ(0))
+
+theta = np.array([0.1, 0.2])
+
+print(pqc(theta))
+```
+
+---
+
+## What to Observe
+
+- Output changes smoothly with parameters  
+- You can treat this like a normal ML model  
+- Gradients can be computed (parameter-shift rule)  
+
+---
+
+# Experiments
+
+## Vary Parameters
+
+- Sweep \( \theta \) values  
+- Plot output vs parameter  
+
+## Add Depth
+
+- Stack more layers  
+- Observe increased flexibility  
+
+## Introduce Entanglement
+
+- Add a second qubit  
+- Use CNOT  
+- Observe interaction effects  
+
+---
+
+# Failure Modes & Pitfalls
+
+- Making circuits too deep → barren plateaus  
+- Ignoring entanglement → weak models  
+- Assuming more parameters = better performance  
+- Not considering noise (critical on real hardware)  
+
+---
+
+# Further Reading
+
+- Schuld & Petruccione — Supervised Learning with Quantum Computers  
+- PennyLane docs — Variational circuits  
+- Recent QML papers on barren plateaus  
+
+---
+
+# Key Takeaways
+
+1. PQCs are the quantum equivalent of neural networks.
+2. Parameters control unitary transformations of quantum states.
+3. Circuit structure determines model capacity.
+4. There is a tradeoff between expressivity and trainability.
+5. Most QML models reduce to optimizing expectation values via PQCs.

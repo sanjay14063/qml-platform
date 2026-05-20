@@ -1,0 +1,308 @@
+---
+title: "Linear Algebra for Quantum ML"
+stage: 0
+---
+
+# Motivation
+
+Quantum machine learning is, at its core, linear algebra wearing a physics costume.
+
+If you strip away the terminology—“quantum states”, “gates”, “measurements”—what you’re really working with are:
+- vectors
+- matrices
+- inner products
+
+The difference from classical ML is not *what* objects you use, but **how strictly they are constrained**.
+
+In classical ML, vectors are just containers of numbers. In quantum mechanics, vectors represent *physical states*, so they must obey rules:
+- they live in complex vector spaces
+- they must always be normalized
+- transformations must preserve that normalization
+
+This module is about building the mental model required to work in that world.
+
+If you’ve seen vectors and matrices before, good. If not, that’s fine—but you’ll need to engage actively. Don’t skim this. Try to *visualize* everything.
+
+---
+
+# Core Concepts
+
+## Vectors, Norms, and Geometry
+
+Let’s start from something concrete.
+
+A vector in $\mathbb{R}^2$ is something like:
+
+$$
+v = \begin{bmatrix} 2 \\ 1 \end{bmatrix}
+$$
+
+Geometrically, this is just an arrow from the origin to the point (2, 1).
+
+Now here’s the first shift:
+
+> In quantum mechanics, vectors don’t live in $\mathbb{R}^n$, they live in $\mathbb{C}^n$.
+
+That means instead of real numbers, your components can look like:
+
+$$
+v = \begin{bmatrix} 1 \\ i \end{bmatrix}
+$$
+
+This is not just a technicality. Complex numbers allow **phase**, which is essential for interference effects later.
+
+---
+
+### Linear Combination (This is foundational)
+
+Any vector can be written as a combination of basis vectors:
+
+$$
+|v\rangle = \sum_i \alpha_i |e_i\rangle
+$$
+
+For example in 2D:
+
+$$
+|v\rangle = \alpha |0\rangle + \beta |1\rangle
+$$
+
+Think of this as:
+- $|0\rangle$ and $|1\rangle$ are directions
+- $\alpha, \beta$ tell you how much of each direction you have
+
+In quantum mechanics, these coefficients are called **amplitudes**.
+
+Important distinction:
+- amplitudes are not probabilities
+- probabilities come *later*
+
+---
+
+### Inner Product (This is where everything connects)
+
+The inner product is defined as:
+
+$$
+\langle u | v \rangle = \sum_i \overline{u_i} v_i
+$$
+
+This looks like a dot product, but with a conjugate.
+
+What it actually measures:
+- similarity
+- alignment
+- overlap
+
+This single operation is responsible for:
+- computing probabilities
+- defining orthogonality
+- defining length
+
+---
+
+### Norm (Length of a vector)
+
+From the inner product:
+
+$$
+\|v\| = \sqrt{\langle v | v \rangle}
+$$
+
+In quantum mechanics:
+
+> Valid states must satisfy $\|v\| = 1$
+
+This is not optional.
+
+Why?
+
+Because later:
+- probabilities are computed as squared magnitudes
+- if the norm isn’t 1, total probability ≠ 1
+
+So normalization is enforcing:
+> “this vector represents a valid probabilistic system”
+
+---
+
+## Orthonormal Bases
+
+A set of vectors is orthonormal if:
+
+$$
+\langle e_i | e_j \rangle = \delta_{ij}
+$$
+
+Translated:
+- vectors are perpendicular (orthogonal)
+- each has unit length (normalized)
+
+Why this matters:
+
+Any quantum state can be decomposed cleanly in such a basis.
+
+In practice:
+- computational basis: $|0\rangle, |1\rangle$
+- measurement happens relative to a basis
+
+---
+
+## Linear Operators and Matrices
+
+Now we move from *states* to *transformations*.
+
+A linear operator satisfies:
+
+$$
+A(\alpha u + \beta v) = \alpha A(u) + \beta A(v)
+$$
+
+In practice, this just means:
+> the transformation behaves predictably with respect to scaling and addition
+
+These operators are represented as matrices.
+
+---
+
+### Key Insight (Don’t skip this)
+
+A matrix is not just a grid of numbers.
+
+It encodes:
+> “where each basis vector gets sent”
+
+Once you know that:
+- you automatically know what happens to *every* vector
+
+This is why matrices fully define transformations.
+
+---
+
+### Special Operators in Quantum Mechanics
+
+#### Unitary Operators
+
+$$
+U^\dagger U = I
+$$
+
+Meaning:
+- they preserve length
+- they preserve normalization
+
+Interpretation:
+> these are the only allowed “evolutions” of quantum states
+
+If a transformation is not unitary, it’s physically invalid (before measurement).
+
+---
+
+#### Hermitian Operators
+
+$$
+H = H^\dagger
+$$
+
+These represent:
+> measurable quantities
+
+Examples:
+- energy
+- spin
+- observables in general
+
+---
+
+## Eigenvalues and Eigendecomposition
+
+Now we get to one of the most important ideas.
+
+An eigenvector satisfies:
+
+$$
+Av = \lambda v
+$$
+
+Meaning:
+- direction stays the same
+- only scaling happens
+
+Interpretation:
+> these are the “natural directions” of a transformation
+
+---
+
+### Why this matters for quantum mechanics
+
+For Hermitian matrices:
+- eigenvalues are real
+- eigenvectors form an orthonormal basis
+
+This leads to:
+
+$$
+A = \sum_i \lambda_i |v_i\rangle \langle v_i|
+$$
+
+This is not just algebra.
+
+This is:
+> the mathematical structure behind measurement
+
+When you measure:
+- the system “chooses” one eigenvector
+- you observe the corresponding eigenvalue
+
+---
+
+## Key Equations
+
+- Inner product: $\langle u | v \rangle = \sum_i \overline{u_i} v_i$
+- Norm: $\|v\| = \sqrt{\langle v | v \rangle}$
+- Unitary: $U^\dagger U = I$
+- Eigen equation: $Av = \lambda v$
+- Spectral decomposition: $A = \sum_i \lambda_i |v_i\rangle \langle v_i|$
+
+---
+
+## Intuition
+
+If you compress everything:
+
+- A **quantum state** is a unit vector
+- A **quantum gate** is a unitary matrix
+- A **measurement** is projection onto eigenvectors
+
+Everything reduces to:
+- vectors
+- matrices
+- inner products
+
+There is no separate “quantum math”
+—this *is* the math.
+
+---
+
+# Implementation
+
+## NumPy Examples
+
+```python
+import numpy as np
+
+# Define a normalized complex vector
+v = np.array([1, 1j]) / np.sqrt(2)
+
+# Check normalization
+print("Norm:", np.vdot(v, v))
+
+# Define a Hermitian matrix
+H = np.array([[1, 1],
+              [1, -1]], dtype=complex) / np.sqrt(2)
+
+# Eigendecomposition
+e_vals, e_vecs = np.linalg.eigh(H)
+
+print("Eigenvalues:", e_vals)
+print("Eigenvectors:\n", e_vecs)

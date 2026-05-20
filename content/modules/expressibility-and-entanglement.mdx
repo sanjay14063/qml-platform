@@ -1,0 +1,394 @@
+---
+title: "Expressibility and Entanglement"
+stage: 4
+---
+
+# Motivation
+
+At this point, you’ve seen how to:
+
+- build quantum models  
+- train them  
+- deal with noise  
+
+Now comes a more subtle question:
+
+> how powerful is your circuit *actually*?
+
+---
+
+Not all parameterized quantum circuits are equal.
+
+Some can represent a huge variety of quantum states.
+
+Others are much more limited.
+
+---
+
+This idea is captured by:
+
+- **expressibility** → how much your circuit can represent  
+- **entanglement** → how strongly qubits are correlated  
+
+---
+
+But here’s the catch:
+
+> more power does not always mean better performance  
+
+---
+
+In fact:
+
+> highly expressive circuits are often harder to train  
+
+---
+
+# Core Concepts
+
+## Expressibility (intuitive first)
+
+Expressibility asks:
+
+> how much of the quantum state space can your circuit explore?
+
+---
+
+You start with a circuit:
+
+\[
+|\psi(\theta)\rangle
+\]
+
+and vary parameters \( \theta \).
+
+---
+
+If your circuit is highly expressive:
+
+- it can reach many different states  
+- it behaves almost like a random quantum circuit  
+
+---
+
+If it’s not:
+
+- it’s restricted to a small region of the Hilbert space  
+
+---
+
+## Formal View
+
+We measure expressibility by comparing:
+
+- the distribution of states your circuit produces  
+- the distribution of completely random states (Haar distribution)
+
+---
+
+One metric uses **fidelity**:
+
+\[
+F = \mathbb{E}_{\theta,\phi}\left[|\langle \psi(\theta) | \psi(\phi) \rangle|^2\right]
+\]
+
+---
+
+Interpretation:
+
+- high \( F \) → states are similar → low expressibility  
+- low \( F \) → states are diverse → high expressibility  
+
+---
+
+So:
+
+> lower fidelity average = more expressive circuit  
+
+---
+
+## Entanglement
+
+Entanglement measures how strongly qubits depend on each other.
+
+---
+
+For a state \( |\psi\rangle \), we split the system:
+
+- subsystem A  
+- subsystem B  
+
+---
+
+Then define:
+
+\[
+\rho_A = \operatorname{Tr}_B(|\psi\rangle\langle\psi|)
+\]
+
+---
+
+And compute:
+
+\[
+S(\rho_A) = -\operatorname{Tr}(\rho_A \log_2 \rho_A)
+\]
+
+---
+
+This is **entanglement entropy**.
+
+---
+
+Interpretation:
+
+- \( S = 0 \) → no entanglement  
+- higher \( S \) → more entanglement  
+
+---
+
+## Why Entanglement Matters
+
+Entanglement enables:
+
+- correlations that classical systems struggle to represent  
+- richer transformations of data  
+
+---
+
+But:
+
+> too much entanglement can hurt training  
+
+---
+
+This links directly to:
+
+- barren plateaus  
+- unstable gradients  
+
+---
+
+## Expressibility vs Trainability
+
+This is the key idea of the entire module:
+
+> more expressive circuits tend to have flatter optimization landscapes  
+
+---
+
+Meaning:
+
+- gradients become very small  
+- optimization becomes difficult  
+
+---
+
+So you get a trade-off:
+
+- high expressibility → high capacity, low trainability  
+- low expressibility → easier training, limited power  
+
+---
+
+## Inductive Bias (very important)
+
+Your circuit structure defines:
+
+> what kinds of functions it prefers to learn  
+
+---
+
+Two common approaches:
+
+### Hardware-Efficient Ansatz
+
+- simple  
+- matches device connectivity  
+- highly expressive  
+
+But:
+
+- prone to barren plateaus  
+- less structured  
+
+---
+
+### Problem-Inspired Ansatz
+
+- designed using domain knowledge  
+- more structured  
+
+But:
+
+- less expressive  
+- often easier to train  
+
+---
+
+So:
+
+> expressibility alone does not determine performance  
+
+---
+
+Structure matters.
+
+---
+
+## Intuition (3Blue1Brown style)
+
+Imagine:
+
+- a model that can draw *any possible shape*  
+- vs a model that can draw only *specific structured patterns*  
+
+---
+
+The first one:
+
+- has more power  
+- but doesn’t know where to start  
+
+---
+
+The second:
+
+- is limited  
+- but learns faster  
+
+---
+
+That’s the trade-off.
+
+---
+
+## Connection to Earlier Topics
+
+This module ties directly to:
+
+- **barren plateaus** → high expressibility → vanishing gradients  
+- **noise** → deeper circuits → more error  
+- **VQCs** → ansatz design choices  
+
+---
+
+So this isn’t isolated:
+
+> it explains why earlier problems happen  
+
+---
+
+# Implementation
+
+## Expressibility (sampling approach)
+
+```python
+import pennylane as qml
+import numpy as np
+
+n_qubits = 2
+dev = qml.device("default.qubit", wires=n_qubits)
+
+def ansatz(params):
+    for i in range(n_qubits):
+        qml.RY(params[i], wires=i)
+    for i in range(n_qubits - 1):
+        qml.CNOT(wires=[i, i+1])
+    for i in range(n_qubits):
+        qml.RZ(params[n_qubits + i], wires=i)
+
+@qml.qnode(dev)
+def get_state(params):
+    ansatz(params)
+    return qml.state()
+
+def fidelity(a, b):
+    return np.abs(np.vdot(a, b))**2
+
+# sample random states and compute average fidelity
+samples = 100
+fid_values = []
+
+for _ in range(samples):
+    theta = np.random.uniform(0, 2*np.pi, 2*n_qubits)
+    phi = np.random.uniform(0, 2*np.pi, 2*n_qubits)
+    
+    state1 = get_state(theta)
+    state2 = get_state(phi)
+    
+    fid_values.append(fidelity(state1, state2))
+
+print("Average fidelity:", np.mean(fid_values))
+```
+
+---
+
+## Entanglement Entropy
+
+```python
+def entanglement_entropy(state_vector, partition):
+    rho_A = qml.math.reduce_dm(state_vector, indices=partition)
+    eigenvalues = np.linalg.eigvalsh(rho_A)
+    eigenvalues = eigenvalues[eigenvalues > 1e-10]
+    return -np.sum(eigenvalues * np.log2(eigenvalues))
+```
+
+---
+
+# Experiments
+
+## Expressibility vs Depth
+
+- increase number of layers  
+- compute average fidelity  
+- observe decrease → higher expressibility  
+
+---
+
+## Entanglement Growth
+
+- track entropy as layers increase  
+- observe how quickly entanglement builds  
+
+---
+
+## Expressibility vs Gradients
+
+- measure gradient magnitude  
+- compare shallow vs deep circuits  
+
+---
+
+You’ll typically see:
+
+> more expressibility → smaller gradients  
+
+---
+
+# Failure Modes & Pitfalls
+
+- assuming “more expressive = better model”  
+- ignoring training difficulty  
+- overusing deep hardware-efficient circuits  
+- not considering problem structure  
+- confusing randomness with usefulness  
+
+---
+
+# Further Reading
+
+- Sim et al. — Expressibility and entangling capability  
+- Holmes et al. — Expressibility vs gradients  
+- Cerezo et al. — Barren plateaus  
+
+---
+
+# Key Takeaways
+
+1. Expressibility measures how much of the state space a circuit can explore.
+2. Entanglement captures non-classical correlations between qubits.
+3. High expressibility often leads to vanishing gradients.
+4. More entanglement is not always better.
+5. Ansatz design determines both performance and trainability.
+6. Structure and inductive bias matter more than raw expressibility.

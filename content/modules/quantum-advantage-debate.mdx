@@ -1,0 +1,424 @@
+---
+title: "Quantum Advantage: The Debate"
+stage: 4
+---
+
+# Motivation
+
+A central question in QML is whether quantum computers can outperform classical machines on learning tasks. Claims of "quantum advantage" or "quantum supremacy" have been made and contested. This module surveys the debate: what constitutes a fair comparison, where advantages have been argued, and where classical simulability or lack of scaling undermines them.
+
+# Core Concepts
+
+## Defining Quantum Advantage
+
+Quantum advantage (for a specific task) means: a quantum algorithm solves the task faster or more accurately than any known classical algorithm, under comparable resource constraints (time, memory, data).
+
+**Challenges**: (1) Classical algorithms improve over time; (2) problem instances must be large enough to matter; (3) noise and overhead on real hardware reduce advantage.
+
+## Provable vs Heuristic Advantage
+
+- **Provable**: Complexity-theoretic arguments (e.g., BQP vs BPP) for asymptotic advantage. Rare for ML.
+- **Heuristic**: Empirical or numerical evidence; classical baselines may catch up.
+
+## Classical Simulability
+
+Many quantum circuits can be simulated classically in polynomial time (or with limited exponential overhead). If a QML model is classically simulable, claims of advantage require care: the comparison must be against the best classical simulator, not a straw-man baseline.
+
+## Key Equations
+
+{/* No single equation captures the debate; it hinges on problem size, noise, and classical algorithm design. */}
+
+## Intuition
+
+{/* Quantum advantage in ML is not settled. Most NISQ-era results use small instances; scaling to classically hard regimes remains open. Critical evaluation of claims is essential. */}
+
+# Implementation
+
+## Classical Baseline Comparison
+
+```python
+# When evaluating a quantum model, always compare to:
+# 1. Classical kernel methods (e.g., RBF SVM)
+# 2. Neural networks of similar parameter count
+# 3. Same train/val split, same metrics
+
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import cross_val_score
+
+# Example: compare quantum kernel to classical RBF kernel
+# X_train, y_train from same dataset
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X_train)
+
+# Classical RBF SVM
+clf = SVC(kernel='rbf', gamma='scale', C=1.0)
+scores = cross_val_score(clf, X_scaled, y_train, cv=5)
+print("Classical RBF SVM accuracy:", scores.mean(), "+/-", scores.std())
+
+# Quantum kernel: compute K_ij, use SVC(kernel='precomputed')
+# Report both; avoid claiming advantage without statistical significance
+```
+
+## Reproducibility Checklist
+
+{/* Document: dataset size, train/val split, number of runs, error bars, classical baselines tested, problem size. */}
+
+# Experiments
+
+## When Do Quantum Kernels Help?
+
+{/* Kübler et al. and others show many quantum kernels are classically simulable or matched by simple classical kernels. Identify regimes (if any) where quantum helps. */}
+
+## Scaling to Classically Hard Regimes
+
+{/* Most QML experiments use $\sim$20 qubits or fewer. Scaling to 50+ qubits where classical simulation is infeasible remains a challenge. */}
+
+# Failure Modes & Pitfalls
+
+- Comparing to weak classical baselines
+- Using tiny datasets (high variance, no generalization signal)
+- Extrapolating from small instances to "advantage"
+- Ignoring the cost of classical preprocessing or data encoding
+- Claiming advantage without error bars or multiple seeds
+
+# Further Reading
+
+- Kübler et al., The inductive bias of quantum kernels
+- Huang et al., Power of data in quantum machine learning
+- Cerezo et al., Does provable absence of barren plateaus imply classical simulability?
+- Preskill, Quantum computing in the NISQ era and beyond
+
+# Key Takeaways
+
+1. Quantum advantage in ML is an open question; most claims are heuristic and instance-dependent.
+2. Fair comparison requires strong classical baselines, proper statistics, and scalability analysis.
+3. Critical engagement with the literature—questioning claims, checking simulability, reproducing results—is essential for research integrity.
+
+---
+title: "Quantum Advantage: The Debate"
+stage: 4
+---
+
+# Motivation
+
+This is probably the most hyped question in quantum machine learning:
+
+> can quantum computers actually beat classical ones?
+
+---
+
+You’ll hear terms like:
+
+- “quantum advantage”  
+- “quantum supremacy”  
+
+---
+
+But if you look closer:
+
+> it’s not settled at all  
+
+---
+
+Some papers claim big improvements.
+
+Other papers show those same results can be matched classically.
+
+---
+
+So instead of blindly believing claims:
+
+> you need to understand how to *evaluate them properly*  
+
+---
+
+# Core Concepts
+
+## What Does “Quantum Advantage” Actually Mean?
+
+At a basic level:
+
+> a quantum model performs better than the best known classical method  
+
+---
+
+But that “better” has to be fair:
+
+- same dataset  
+- similar resources (time, memory)  
+- strong classical baselines  
+
+---
+
+Otherwise:
+
+> it’s not a real comparison  
+
+---
+
+## Why This Is So Hard
+
+There are a few core issues:
+
+---
+
+### 1. Classical Methods Keep Improving
+
+You might think:
+
+> “this quantum model beats classical ML”
+
+---
+
+Then someone comes along with:
+
+- a better kernel  
+- a better architecture  
+- better tuning  
+
+---
+
+And suddenly:
+
+> the advantage disappears  
+
+---
+
+### 2. Small Experiments Don’t Mean Much
+
+Most QML experiments:
+
+- use tiny datasets  
+- use very few qubits  
+
+---
+
+So even if you see improvement:
+
+> it might just be noise or overfitting  
+
+---
+
+Scaling is the real test.
+
+---
+
+### 3. Hardware Isn’t Ideal
+
+From earlier:
+
+- noise  
+- limited depth  
+- unstable outputs  
+
+---
+
+So even if theory looks good:
+
+> real hardware can destroy the advantage  
+
+---
+
+## Provable vs Heuristic Advantage
+
+Two very different types of claims:
+
+---
+
+### Provable Advantage
+
+- based on complexity theory  
+- long-term, asymptotic arguments  
+
+---
+
+Example idea:
+
+> quantum computers can solve certain problems faster in principle  
+
+---
+
+But:
+
+> this is rare in machine learning  
+
+---
+
+### Heuristic Advantage
+
+- based on experiments  
+- depends on specific datasets  
+
+---
+
+This is what most QML papers do.
+
+---
+
+And it comes with a problem:
+
+> classical methods might catch up  
+
+---
+
+## Classical Simulability
+
+This is where a lot of “advantage” claims break.
+
+---
+
+Some quantum circuits:
+
+> can actually be simulated efficiently on classical computers  
+
+---
+
+So if your model is simulable:
+
+> you’re not really getting a quantum advantage  
+
+---
+
+At best:
+
+> you’re using a complicated way to do something classical  
+
+---
+
+## Intuition
+
+Think of it like this:
+
+---
+
+You build a “quantum model” that works well.
+
+---
+
+But then someone asks:
+
+> “did you compare it to the *best* classical method?”  
+
+---
+
+If the answer is no:
+
+> the result doesn’t mean much  
+
+---
+
+This is why the debate is still open.
+
+---
+
+# Implementation
+
+## Always Compare Properly
+
+```python
+# When evaluating a quantum model, always compare to:
+# 1. Classical kernel methods (e.g., RBF SVM)
+# 2. Neural networks of similar parameter count
+# 3. Same train/val split, same metrics
+
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import cross_val_score
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X_train)
+
+clf = SVC(kernel='rbf', gamma='scale', C=1.0)
+scores = cross_val_score(clf, X_scaled, y_train, cv=5)
+
+print("Classical RBF SVM accuracy:", scores.mean(), "+/-", scores.std())
+```
+
+---
+
+## What You Should Always Report
+
+- dataset size  
+- number of runs  
+- error bars  
+- classical baselines used  
+- problem size (qubits, depth)  
+
+---
+
+If you don’t:
+
+> your results aren’t trustworthy  
+
+---
+
+# Experiments
+
+## When Do Quantum Models Help?
+
+Right now:
+
+> this is still unclear  
+
+---
+
+Some cases show:
+
+- slight improvements  
+- interesting structure  
+
+---
+
+But often:
+
+> classical models match or beat them  
+
+---
+
+## Scaling Question
+
+This is the real bottleneck:
+
+> can quantum models work on problems that are too large for classical simulation?
+
+---
+
+So far:
+
+> not convincingly  
+
+---
+
+That’s why the debate is still active.
+
+---
+
+# Failure Modes & Pitfalls
+
+- comparing against weak classical baselines  
+- using tiny datasets  
+- overfitting and calling it “advantage”  
+- ignoring simulability  
+- not reporting variance across runs  
+- making big claims from small experiments  
+
+---
+
+# Further Reading
+
+- Kübler et al. — inductive bias of quantum kernels  
+- Huang et al. — power of data in QML  
+- Cerezo et al. — barren plateaus & simulability  
+- Preskill — NISQ era  
+
+---
+
+# Key Takeaways
+
+1. Quantum advantage in ML is not proven yet.
+2. Most current results are small-scale and heuristic.
+3. Strong classical baselines are essential.
+4. Simulability can invalidate advantage claims.
+5. Scaling is the real test.
+6. You should be skeptical and analytical when reading papers.

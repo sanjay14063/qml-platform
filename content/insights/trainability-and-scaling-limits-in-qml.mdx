@@ -1,0 +1,51 @@
+---
+title: "Trainability and Scaling Limits in QML"
+description: "Quantum models are most effective only when their structure aligns with hardware constraints and learning signal does not degrade with system scale."
+---
+
+# Trainability and Scaling Limits in QML
+
+A major constraint in quantum machine learning is that trainability does not scale cleanly with system size. Increasing qubits or circuit depth often leads to a rapid degradation of learning signal, even when the model becomes more expressive in theory.
+
+This creates a fundamental tension between expressivity and optimization stability.
+
+## Why scaling breaks trainability
+
+As quantum systems grow, several effects combine to make optimization harder:
+
+- Barren plateaus, where gradients vanish exponentially with system size
+- Concentration of measure, causing outputs to become statistically uniform
+- Increased sensitivity to noise as circuit depth increases
+- Vanishing or highly noisy gradients in parameterized circuits
+- Optimization landscapes that become effectively flat at scale
+
+Together, these effects mean that larger models are not necessarily more learnable.
+
+## Reliable signals in QML systems
+
+Despite these limitations, some structures preserve usable learning signals:
+
+- Data encodings with strong geometric or algebraic structure
+- Problem symmetries that reduce effective search space
+- Quantum kernel methods with well-defined similarity measures
+- Shallow, hardware-efficient ansatz designs
+- Local cost functions that avoid global measurement collapse
+
+These approaches do not remove scaling issues, but they reduce their severity.
+
+## Common failure mode in scaling QML models
+
+A typical failure pattern is:
+
+1. Design a small quantum model that trains successfully
+2. Increase qubit count or circuit depth to improve expressivity
+3. Observe rapid degradation in training performance
+4. Conclude that the model "should work in principle" despite empirical collapse
+
+This reflects a misunderstanding of how scaling interacts with optimization in quantum systems.
+
+## Practical takeaway
+
+In QML, scaling is not a neutral operation. Increasing model size can actively destroy trainability.
+
+Practical quantum models must prioritize structure and optimization stability over raw expressive capacity. In most cases, shallow and constrained architectures outperform deeper, more expressive ones.

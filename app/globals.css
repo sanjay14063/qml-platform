@@ -1,0 +1,176 @@
+@import 'katex/dist/katex.min.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground: #111111;
+  --background: #f7f3ea;
+  --accent: #2f6f68;
+  --muted: #666158;
+  --border: #ded8cb;
+  --card: #fffdf8;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  text-rendering: optimizeLegibility;
+}
+
+.demo-range {
+  height: 1.25rem;
+  cursor: pointer;
+  appearance: none;
+  background: transparent;
+}
+
+.demo-range:focus {
+  outline: none;
+}
+
+.demo-range::-webkit-slider-runnable-track {
+  height: 0.25rem;
+  border-radius: 999px;
+  background: #ded8cb;
+}
+
+.demo-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  margin-top: -0.375rem;
+  border: 1px solid #c8beaa;
+  border-radius: 999px;
+  background: #fffdf8;
+  box-shadow: 0 4px 12px rgba(17, 17, 17, 0.12);
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.demo-range:hover::-webkit-slider-thumb {
+  transform: scale(1.08);
+  border-color: #2f6f68;
+}
+
+.demo-range:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px rgba(47, 111, 104, 0.14);
+}
+
+.demo-range::-moz-range-track {
+  height: 0.25rem;
+  border-radius: 999px;
+  background: #ded8cb;
+}
+
+.demo-range::-moz-range-thumb {
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid #c8beaa;
+  border-radius: 999px;
+  background: #fffdf8;
+  box-shadow: 0 4px 12px rgba(17, 17, 17, 0.12);
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.demo-range:hover::-moz-range-thumb {
+  transform: scale(1.08);
+  border-color: #2f6f68;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight text-ink;
+  }
+
+  a {
+    @apply underline-offset-4;
+  }
+
+  ::selection {
+    @apply bg-accent text-cream;
+  }
+}
+
+/* KaTeX overflow fix */
+.katex-display {
+  @apply overflow-x-auto overflow-y-hidden;
+}
+
+.mdx-content {
+  @apply max-w-[700px] text-[1.03rem] leading-[1.75] text-ink-soft;
+}
+
+.mdx-content > * + * {
+  @apply mt-6;
+}
+
+.mdx-content h1 {
+  @apply mt-14 text-3xl font-semibold leading-tight tracking-tight text-ink;
+}
+
+.mdx-content h2 {
+  @apply mt-14 text-2xl font-semibold leading-tight tracking-tight text-ink;
+}
+
+.mdx-content h3 {
+  @apply mt-10 text-xl font-semibold leading-snug tracking-tight text-ink;
+}
+
+.mdx-content h4 {
+  @apply mt-8 text-lg font-semibold leading-snug text-ink;
+}
+
+.mdx-content p {
+  @apply leading-[1.75];
+}
+
+.mdx-content a {
+  @apply font-medium text-accent transition-colors hover:text-ink;
+}
+
+.mdx-content ul,
+.mdx-content ol {
+  @apply my-6 space-y-2 pl-6;
+}
+
+.mdx-content ul {
+  @apply list-disc;
+}
+
+.mdx-content ol {
+  @apply list-decimal;
+}
+
+.mdx-content li {
+  @apply pl-1 leading-7;
+}
+
+.mdx-content blockquote {
+  @apply my-8 border-l border-line-strong pl-5 text-muted;
+}
+
+.mdx-content hr {
+  @apply my-12 border-line;
+}
+
+.mdx-content pre {
+  @apply my-8;
+}
+
+.mdx-content pre code {
+  @apply bg-transparent p-0 text-cream;
+}
+
+.mdx-content table {
+  @apply my-8 w-full border-collapse overflow-hidden rounded-xl text-sm;
+}
+
+.mdx-content th,
+.mdx-content td {
+  @apply border border-line px-4 py-3 text-left;
+}

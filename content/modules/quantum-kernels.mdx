@@ -1,0 +1,298 @@
+---
+title: "Quantum Kernels"
+stage: 2
+---
+
+# Motivation
+
+Up to now, you’ve built:
+
+- a feature map → turns data into a quantum state  
+- a circuit → transforms that state  
+- a measurement → gives an output  
+
+But there’s another path.
+
+Instead of learning a model, you can ask:
+
+> what if we just measure *similarity* between data points in quantum space?
+
+That’s exactly what quantum kernels do.
+
+---
+
+In classical ML:
+
+- kernels measure similarity in feature space  
+
+In quantum ML:
+
+- kernels measure similarity in **Hilbert space**  
+
+---
+
+# Core Concepts
+
+## What is a Quantum Kernel (intuitively)?
+
+A quantum kernel compares two data points after encoding them as quantum states.
+
+\[
+k(\mathbf{x}, \mathbf{x}') = |\langle \phi(\mathbf{x}) | \phi(\mathbf{x}') \rangle|^2
+\]
+
+So:
+
+- encode \( \mathbf{x} \rightarrow |\phi(\mathbf{x})\rangle \)  
+- encode \( \mathbf{x'} \rightarrow |\phi(\mathbf{x'})\rangle \)  
+- measure how much they overlap  
+
+---
+
+### Interpretation
+
+- Large overlap → states are similar  
+- Small overlap → states are different  
+
+So:
+
+> the kernel is literally measuring how “aligned” two quantum states are  
+
+---
+
+## Why This Works
+
+This is the same idea as classical kernel methods.
+
+Instead of explicitly computing features, you compute:
+
+\[
+k(\mathbf{x}, \mathbf{x}')
+\]
+
+and let algorithms like SVMs do the rest.
+
+---
+
+## Key Insight
+
+Quantum kernels do **not learn parameters**.
+
+They do something more subtle:
+
+> they define a geometry where learning becomes easy  
+
+---
+
+If your feature map is good:
+
+- data becomes separable  
+- simple models (like SVMs) work well  
+
+If your feature map is bad:
+
+- nothing works  
+
+---
+
+## Mathematical View
+
+Given a feature map:
+
+\[
+|\phi(\mathbf{x})\rangle
+\]
+
+The kernel is:
+
+\[
+k(\mathbf{x}, \mathbf{x}') = |\langle \phi(\mathbf{x}) | \phi(\mathbf{x}') \rangle|^2
+\]
+
+Equivalent density matrix form:
+
+\[
+k(\mathbf{x}, \mathbf{x}') = \operatorname{Tr}(\rho(\mathbf{x}) \rho(\mathbf{x}'))
+\]
+
+---
+
+## Kernel Matrix
+
+For a dataset:
+
+\[
+K_{ij} = k(\mathbf{x}_i, \mathbf{x}_j)
+\]
+
+This matrix is:
+
+- symmetric  
+- positive semi-definite  
+
+Which makes it valid for classical algorithms.
+
+---
+
+## Connection to SVMs
+
+You plug the kernel matrix into an SVM:
+
+\[
+\max_\alpha \sum_i \alpha_i - \frac{1}{2}\sum_{ij} \alpha_i \alpha_j y_i y_j K_{ij}
+\]
+
+Important point:
+
+> the quantum part is only computing similarity  
+> the learning is still classical  
+
+---
+
+## Where the “Quantum Advantage” Could Come From
+
+This is where things get interesting.
+
+A quantum kernel can be useful if:
+
+1. The feature map is hard to simulate classically  
+2. The induced geometry matches the data structure  
+3. Noise does not destroy the signal  
+
+---
+
+If these fail:
+
+> quantum kernel = expensive classical kernel  
+
+---
+
+## Intuition (3Blue1Brown style)
+
+Imagine this:
+
+- You take two data points  
+- Encode them into quantum states  
+- Then “overlap” them  
+
+If they interfere constructively:
+
+→ high similarity  
+
+If they cancel out:
+
+→ low similarity  
+
+---
+
+So instead of:
+
+- comparing numbers  
+
+you are:
+
+> comparing wave-like structures  
+
+---
+
+## Important Limitation
+
+Quantum kernels are powerful, but:
+
+- they don’t adapt (no training)  
+- performance depends entirely on feature map  
+- scaling can be expensive (need \( O(n^2) \) kernel evaluations)  
+
+---
+
+## Big Picture Connection
+
+Now you can see the full system:
+
+- Feature map → defines geometry  
+- Kernel → measures similarity in that geometry  
+- Classical model → learns decision boundary  
+
+---
+
+# Implementation
+
+## Basic Kernel (PennyLane)
+
+```python
+import pennylane as qml
+from pennylane.kernels import square_kernel_matrix
+
+def kernel_fn(x1, x2):
+    return qml.kernels.fidelity_kernel(feature_map, x1, x2)
+
+K = square_kernel_matrix(X, kernel_fn)
+```
+
+---
+
+## Using with an SVM
+
+```python
+from sklearn.svm import SVC
+
+svm = SVC(kernel="precomputed")
+svm.fit(K, y)
+```
+
+---
+
+# Experiments
+
+## Linear vs Quantum Kernel
+
+- Train SVM with linear kernel  
+- Train with quantum kernel  
+- Compare accuracy  
+
+---
+
+## Changing Feature Maps
+
+- Try different encodings  
+- Observe how kernel matrix changes  
+
+---
+
+## Visualizing Kernel Matrix
+
+Plot \( K \) as a heatmap.
+
+Look for:
+
+- block structures → good separation  
+- random noise → bad encoding  
+
+---
+
+# Failure Modes & Pitfalls
+
+- Thinking kernels “learn” (they don’t)  
+- Using poor feature maps  
+- Ignoring noise (destroys overlap signal)  
+- Assuming quantum advantage without evidence  
+- Not comparing against strong classical baselines  
+
+---
+
+# Further Reading
+
+- Havlíček et al. — Quantum-enhanced feature spaces  
+- Schuld & Killoran — Quantum machine learning in feature Hilbert spaces  
+- PennyLane kernel docs  
+
+---
+
+# Key Takeaways
+
+1. Quantum kernels measure similarity via state overlap.
+2. They define geometry instead of learning parameters.
+3. Performance depends entirely on the feature map.
+4. They integrate with classical models like SVMs.
+5. Potential advantage comes from hard-to-simulate feature maps.
+6. Without the right conditions, they offer no benefit over classical kernels.
