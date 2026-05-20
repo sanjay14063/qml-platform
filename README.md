@@ -4,6 +4,8 @@ A structured, code-backed learning project for Quantum Machine Learning. It focu
 
 This is a learning and exploration system rather than a polished commercial product or formal course.
 
+![Home Page Preview](./images/home.png)
+
 ## Core Idea
 
 Quantum machine learning is often presented in idealized settings. This project instead emphasizes:
@@ -12,6 +14,17 @@ Quantum machine learning is often presented in idealized settings. This project 
 - Why scaling introduces trainability issues
 - How classical baselines affect claims of advantage
 - Where quantum approaches are actually meaningful in practice
+
+## Interface Preview
+
+### Insights Page
+![Insights Page](./assets/insights.png)
+
+### Foundations Module
+![Foundations Module](./assets/foundations.png)
+
+### Example Research Paper Walkthrough 
+![Barren Plateaus](./assets/barrenplateaus.png)
 
 ## Features
 
