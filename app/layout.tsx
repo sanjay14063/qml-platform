@@ -46,7 +46,7 @@ export default function RootLayout({
                 <li><Link href="/about" className="transition-colors hover:text-ink">About</Link></li>
                 <li>
                   <Link
-                    href="https://github.com"
+                    href="https://github.com/sanjayshivaganesh/qml-platform"
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="View source on GitHub"
@@ -64,7 +64,7 @@ export default function RootLayout({
           <Container>
             <p>
               QML Platform — A living research reference.{' '}
-              <Link href="https://github.com/sanjay14063/qml-research-lab/tree/main" target="_blank" rel="noopener noreferrer" className="font-medium text-accent hover:text-ink">
+              <Link href="https://github.com/sanjayshivaganesh/qml-research-lab/tree/main" target="_blank" rel="noopener noreferrer" className="font-medium text-accent hover:text-ink">
                 View source on GitHub
               </Link>
               .

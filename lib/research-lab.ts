@@ -4,8 +4,8 @@ export const researchNotebooks = [
     title: 'Variational Quantum Classifier',
     description: 'Train a compact VQC on a toy classification task and inspect how ansatz choices affect decision boundaries.',
     tags: ['VQC', 'Optimization', 'PennyLane'],
-    href: 'https://github.com/sanjay14063/qml-research-lab/blob/main/notebooks/variational-quantum-classifier.ipynb',
-    colab: 'https://colab.research.google.com/github/sanjay14063/qml-research-lab/blob/main/notebooks/variational-quantum-classifier.ipynb',
+    href: 'https://github.com/sanjayshivaganesh/qml-research-lab/blob/main/notebooks/variational-quantum-classifier.ipynb',
+    colab: 'https://colab.research.google.com/github/sanjayshivaganesh/qml-research-lab/blob/main/notebooks/variational-quantum-classifier.ipynb',
     breakdown: '/research/notes/vqc',
   },
   {
@@ -13,8 +13,8 @@ export const researchNotebooks = [
     title: 'Quantum Kernels from Feature Maps',
     description: 'Build kernel matrices from quantum feature maps and compare them against classical baselines.',
     tags: ['Kernels', 'Feature Maps', 'Baselines'],
-    href: 'https://github.com/sanjay14063/qml-research-lab/blob/main/notebooks/quantum-kernel-feature-maps.ipynb',
-    colab: 'https://colab.research.google.com/github/sanjay14063/qml-research-lab/blob/main/notebooks/quantum-kernel-feature-maps.ipynb',
+    href: 'https://github.com/sanjayshivaganesh/qml-research-lab/blob/main/notebooks/quantum-kernel-feature-maps.ipynb',
+    colab: 'https://colab.research.google.com/github/sanjayshivaganesh/qml-research-lab/blob/main/notebooks/quantum-kernel-feature-maps.ipynb',
     breakdown: '/research/notes/quantum-kernels',
   },
   {
@@ -22,8 +22,8 @@ export const researchNotebooks = [
     title: 'Noise-Aware Circuit Training',
     description: 'Simulate depolarizing and readout noise to measure how training changes under NISQ constraints.',
     tags: ['Noise', 'NISQ', 'Simulation'],
-    href: 'https://github.com/sanjay14063/qml-research-lab/blob/main/notebooks/noise-aware-training.ipynb',
-    colab: 'https://colab.research.google.com/github/sanjay14063/qml-research-lab/blob/main/notebooks/noise-aware-training.ipynb',
+    href: 'https://github.com/sanjayshivaganesh/qml-research-lab/blob/main/notebooks/noise-aware-training.ipynb',
+    colab: 'https://colab.research.google.com/github/sanjayshivaganesh/qml-research-lab/blob/main/notebooks/noise-aware-training.ipynb',
     breakdown: '/research/notes/noise-aware-training',
   },
 ] as const

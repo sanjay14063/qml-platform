@@ -1,8 +1,8 @@
 import { experimentDatasets } from '@/data/experiments/placeholder-traces'
 import type { ExperimentConfig } from '@/data/experiments/types'
 
-const notebookBase = 'https://github.com/sanjay14063/qml-research-lab/blob/main/notebooks'
-const colabBase = 'https://colab.research.google.com/github/sanjay14063/qml-research-lab/blob/main/notebooks'
+const notebookBase = 'https://github.com/sanjayshivaganesh/qml-research-lab/blob/main/notebooks'
+const colabBase = 'https://colab.research.google.com/github/sanjayshivaganesh/qml-research-lab/blob/main/notebooks'
 
 export const experimentCatalog: ExperimentConfig[] = [
   {
